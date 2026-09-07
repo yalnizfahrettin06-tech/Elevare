@@ -49,10 +49,12 @@ fun orderedFacts(catalog:ScienceCatalog,s:UserState):List<ScienceFact>{
  val facts=remember(catalog,s.age,s.focus,s.recentGrowth){orderedFacts(catalog,s).filter{it.sourceId in setOf("sprint","strength","youth","milk","teen-sleep","adult-sleep","breath")}.ifEmpty{orderedFacts(catalog,s)}}
  if(facts.isEmpty()){QuietText("Bilgi kartları yüklenemedi.");return}
  val fact=facts[Math.floorMod(LocalDate.now().toEpochDay()+extra,facts.size.toLong()).toInt()]
- Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){Text("Bugün bir bilgi",Modifier.weight(1f),fontWeight=FontWeight.SemiBold);TextButton(onClick={extra=(extra+1)%facts.size}){Icon(Icons.Rounded.Refresh,"Başka bilgi",Modifier.size(20.dp))}}
  Surface(onClick={onFact(fact.id)},shape=RoundedCornerShape(16.dp),color=MaterialTheme.colorScheme.surface,border=BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant),modifier=Modifier.fillMaxWidth()){
-  Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
-   Eyebrow(fact.category)
+  Column(Modifier.padding(horizontal=14.dp).padding(bottom=14.dp),verticalArrangement=Arrangement.spacedBy(4.dp)){
+   Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+    Text("BUGÜN BİR BİLGİ",Modifier.weight(1f),fontSize=10.sp,letterSpacing=1.sp,color=Sky,fontWeight=FontWeight.Bold)
+    IconButton(onClick={extra=(extra+1)%facts.size}){Icon(Icons.Rounded.Refresh,"Başka bilgi",Modifier.size(19.dp))}
+   }
    Text(fact.text,fontSize=14.sp,lineHeight=20.sp,fontWeight=FontWeight.Medium)
    Row(verticalAlignment=Alignment.CenterVertically){Text("Bilimsel kaynağı gör",Modifier.weight(1f),fontSize=12.sp,color=MaterialTheme.colorScheme.primary);Icon(Icons.Rounded.ChevronRight,null)}
   }

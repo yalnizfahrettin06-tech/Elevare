@@ -64,9 +64,9 @@ import kotlinx.coroutines.delay
     when(current){
      0->{
       Tag("KOŞU  /  GÜÇ  /  YOGA",Mint,Sky)
-      Text("Ritmini bul.\nHarekete geç.",style=MaterialTheme.typography.displayLarge)
+      Text("Ritmini bul.\nHarekete geç.",fontSize=34.sp,lineHeight=38.sp,fontWeight=FontWeight.ExtraBold)
       QuietText("Sana göre bir hafta. Adım adım sesli koç.")
-      Surface(color=Track,shape=RoundedCornerShape(24.dp)){Pose("sprint",Modifier.fillMaxWidth().height(235.dp),Ink,s.reducedMotion)}
+      Surface(color=Track,shape=RoundedCornerShape(24.dp)){Pose("sprint",Modifier.fillMaxWidth().height(195.dp),Ink,s.reducedMotion)}
       Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Tag("Kısa intervaller");Tag("Akıcı hareketler")}
       QuietText("Birkaç soruyla programını birlikte hazırlayalım.")
      }
@@ -126,21 +126,20 @@ import kotlinx.coroutines.delay
  LaunchedEffect(elapsed){if(elapsed>=PREPARATION_DURATION_MS)onReady()}
  PageColumn{
   TopBar("Program hazırlanıyor",onBack)
-  Spacer(Modifier.height(16.dp))
-  Box(Modifier.fillMaxWidth().height(230.dp),contentAlignment=Alignment.Center){
-   CircularProgressIndicator(progress={elapsed.toFloat()/PREPARATION_DURATION_MS},modifier=Modifier.size(210.dp),color=Sky,strokeWidth=4.dp,trackColor=Mint)
-   Pose("sprint",Modifier.size(170.dp),Ink)
+  Box(Modifier.fillMaxWidth().height(175.dp),contentAlignment=Alignment.Center){
+   CircularProgressIndicator(progress={elapsed.toFloat()/PREPARATION_DURATION_MS},modifier=Modifier.size(166.dp),color=Sky,strokeWidth=4.dp,trackColor=Mint)
+   Pose("sprint",Modifier.size(136.dp),Ink)
   }
-  Text(preparationStage(elapsed),style=MaterialTheme.typography.headlineMedium)
+  Text(preparationStage(elapsed),fontSize=24.sp,lineHeight=28.sp,fontWeight=FontWeight.Bold)
   QuietText("Yaklaşık 30 saniye · Sana uygun bir antrenman haftası")
   val labels=listOf("Tercihler değerlendiriliyor","Antrenman günleri hesaplanıyor","Hareket listesi oluşturuluyor","Program düzenleniyor")
-  labels.forEachIndexed{i,label->
+  Column(verticalArrangement=Arrangement.spacedBy(6.dp)){labels.forEachIndexed{i,label->
    val done=elapsed>=(i+1)*7500L;val active=elapsed>=i*7500L
-   Row(Modifier.fillMaxWidth().background(if(active)Mint else Paper,RoundedCornerShape(12.dp)).padding(14.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
+   Row(Modifier.fillMaxWidth().background(if(active)Mint else Paper,RoundedCornerShape(12.dp)).padding(12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
     Icon(if(done)Icons.Rounded.CheckCircle else Icons.Rounded.RadioButtonUnchecked,null,tint=if(active)Sky else MaterialTheme.colorScheme.outline,modifier=Modifier.size(20.dp))
     Text(label,fontSize=14.sp,color=if(active)Ink else MaterialTheme.colorScheme.onSurfaceVariant)
    }
-  }
+  }}
   QuietText(if(elapsed>=15000)"${week.count{it.training}} antrenman günü · ${answers.minutes} dk · ${focusLabel(answers.focus)}" else "Isınma, hareket ve toparlanma birlikte planlanıyor.")
  }
 }
@@ -149,9 +148,9 @@ import kotlinx.coroutines.delay
  val week=remember(answers){weeklyProgram(answers)}
  Column(Modifier.fillMaxSize()){
   Row(Modifier.padding(16.dp)){TopBar("Programın hazır",onBack)}
-  Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal=24.dp),verticalArrangement=Arrangement.spacedBy(18.dp)){
+  Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal=24.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
    Tag("SANA GÖRE  /  ${answers.days} GÜN",Mint,Sky)
-   Text("İlk haftan\nhazır.",style=MaterialTheme.typography.displayLarge)
+   Text("İlk haftan hazır.",fontSize=32.sp,lineHeight=36.sp,fontWeight=FontWeight.ExtraBold)
    QuietText(programReason(answers))
    WeekStrip(week,0)
    week.filter{it.training}.forEach{d->

@@ -136,11 +136,12 @@ import java.time.LocalDate
                 Text(timeText(left),color=Ink,fontSize=48.sp,fontWeight=FontWeight.Bold,letterSpacing=(-1).sp,modifier=Modifier.semantics{contentDescription="$left saniye kaldı"})
                 Text(if(left==0)"Bu bölüm tamamlandı" else if(a.running&&move.id=="sprint")"KONTROLLÜ HIZLAN" else if(a.running&&step.rest)"YÜRÜYEREK TOPARLAN" else if(a.running)"KENDİ HIZINDA" else "DURAKLATILDI",color=Ink.copy(.7f),fontWeight=FontWeight.Bold,fontSize=12.sp,modifier=Modifier.padding(bottom=12.dp))
             }}
-            Text(if(step.rest)"Hazır olana kadar dinlen." else move.hint,fontSize=16.sp,lineHeight=23.sp)
+            Text(if(step.rest)"Yürüyerek toparlan. Gerekirse duraklat." else move.hint,fontSize=16.sp,lineHeight=23.sp)
             if(store.state.voiceCoach&&audio.status.isNotEmpty())TextButton(onClick={soundSettings=true}){Text("Sesli koç ayarlarını kontrol et",fontSize=12.sp)}
             if(w.hasSprint()){
-                val tour=w.steps.take(a.step+1).count{it.moveId=="sprint"}.coerceAtLeast(1)
-                QuietText("Tur $tour / ${w.intervalCount()} · Isınma ve toparlanma dahil")
+                val tour=w.steps.take(a.step+1).count{it.moveId=="sprint"}
+                val lastSprint=w.steps.indexOfLast{it.moveId=="sprint"}
+                QuietText(if(tour==0)"Isınma · Sırada kısa koşu intervalleri" else if(a.step>lastSprint+1)"Soğuma · Tempoyu yavaşça düşür" else "Tur $tour / ${w.intervalCount()} · Koşu ve yürüyüş")
             }
             if(left==0)BigButton("SONRAKİ HAREKET",{val next=w.steps[a.step+1];store.update{it.copy(active=a.copy(step=a.step+1,elapsed=a.elapsed+step.seconds,remaining=next.seconds,deadline=System.currentTimeMillis()+next.seconds*1000L,running=true))}},icon=Icons.Rounded.SkipNext)
             else BigButton(if(a.running)"DURAKLAT" else "DEVAM ET",::toggle,enabled=store.state.pausedOn==null,icon=if(a.running)Icons.Rounded.Pause else Icons.Rounded.PlayArrow)

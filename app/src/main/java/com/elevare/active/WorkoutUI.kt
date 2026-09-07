@@ -29,18 +29,20 @@ import java.util.Locale
 }
 @Composable fun WorkoutHero(w:Workout,reduced:Boolean=false,label:String="BUGÜNÜN ANTRENMANI",button:String="Antrenmana başla",onStart:()->Unit,onGuide:()->Unit){
  Surface(shape=RoundedCornerShape(24.dp),color=Track,border=BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant)){
-  Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
+  Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
    Row(verticalAlignment=Alignment.CenterVertically){Text(label,Modifier.weight(1f),fontSize=10.sp,letterSpacing=1.1.sp,color=Sky,fontWeight=FontWeight.Bold);Icon(Icons.Rounded.Bolt,null,tint=Coral,modifier=Modifier.size(20.dp))}
+   BigButton(button,onStart,icon=Icons.Rounded.PlayArrow)
    Row(verticalAlignment=Alignment.CenterVertically){
     Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(8.dp)){
-     Text(w.title,fontSize=28.sp,lineHeight=31.sp,fontWeight=FontWeight.ExtraBold)
+     Text(w.title,fontSize=24.sp,lineHeight=28.sp,fontWeight=FontWeight.ExtraBold)
      Text(minutesText(w.seconds),fontSize=20.sp,color=Coral,fontWeight=FontWeight.Bold)
     }
-    Pose(w.heroMove(),Modifier.size(135.dp),Ink,reduced)
+    Pose(w.heroMove(),Modifier.size(100.dp),Ink,reduced)
    }
-   Text(w.dayBrief(),fontSize=13.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
-   BigButton(button,onStart,icon=Icons.Rounded.PlayArrow)
-   TextButton(onClick=onGuide,modifier=Modifier.fillMaxWidth()){Icon(Icons.Rounded.Info,null,Modifier.size(17.dp));Spacer(Modifier.width(6.dp));Text(if(w.hasSprint())"Sprint nedir?" else "Antrenmanın akışı")}
+   Row(verticalAlignment=Alignment.CenterVertically){
+    Text(w.dayBrief(),Modifier.weight(1f),fontSize=12.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
+    TextButton(onClick=onGuide){Text(if(w.hasSprint())"Sprint nedir?" else "Hareketleri gör",fontSize=12.sp)}
+   }
   }
  }
 }
