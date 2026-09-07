@@ -19,24 +19,15 @@ import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 @Composable fun PlanScreen(s:UserState,onWorkout:(String)->Unit){
-    val day=journeyDay(s)
-    var selected by remember{mutableIntStateOf(0)}
-    val titles=listOf("RİTMİNİ BUL","RUTİNİNİ KUR","KENDİ YOLUNDA")
-    PageColumn{
-        TopBar("90 GÜN / SENİN RİTMİN")
-        Text("KÜÇÜK ADIMLAR.\nGERÇEK BİR RUTİN.",style=MaterialTheme.typography.headlineLarge)
-        Surface(color=Blue,shape=RoundedCornerShape(22.dp)){Column(Modifier.fillMaxWidth().padding(22.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){Tag(if(s.pausedOn!=null)"DİNLENME MODU" else "BUGÜN",Lime);Text("GÜN $day",color=Color.White,fontSize=38.sp,fontWeight=FontWeight.Black);Text("${titles[(day-1)/30]} · ${((day-1)%30)+1}/30",color=Color.White.copy(.8f));LinearProgressIndicator(progress={day/90f},color=Lime,trackColor=Color.White.copy(.2f),modifier=Modifier.fillMaxWidth())}}
-        Text("Bu bir alışkanlık takvimi; giderek ağırlaşan bir egzersiz reçetesi değil. Boş günler başarısızlık sayılmaz. Dinlenme de planın bir parçası.",color=MaterialTheme.colorScheme.onSurfaceVariant)
-        titles.forEachIndexed{phase,title->
-            BlockTitle("0${phase+1} / $title")
-            (0..5).forEach{row->Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)){
-                (1..5).forEach{col->val d=phase*30+row*5+col;val completed=(s.done["plan:$d"]?:emptySet()).isNotEmpty()
-                    Surface(onClick={selected=d},modifier=Modifier.weight(1f).aspectRatio(1f),color=if(d==day)Ink else if(completed)Mint else MaterialTheme.colorScheme.surface,shape=RoundedCornerShape(13.dp),border=if(d==day)BorderStroke(2.dp,Lime)else null){Box(contentAlignment=Alignment.Center){Text(if(completed)"✓" else "$d",color=if(d==day)Lime else MaterialTheme.colorScheme.onSurface,fontWeight=FontWeight.Bold)}}
-                }
-            }}
-        }
-    }
-    if(selected>0)AlertDialog(onDismissRequest={selected=0},title={Text("Gün $selected")},text={Text(if(selected>day)"İlerideki günün önizlemesi. Amaç yine aynı: kısa bir hareket molası, rahat nefes ve düzenli uyku. Her gün egzersiz yapmak zorunda değilsin." else if((s.done["plan:$selected"]?:emptySet()).isNotEmpty())"Bu gün için rutin kaydın var. Kendi ritminde devam et." else "Bu gün için kayıt yok. Boş günleri telafi etmek veya art arda seans yapmak gerekmez.")},confirmButton={TextButton(onClick={selected=0}){Text("Tamam")}},dismissButton={if(selected==day&&s.pausedOn==null)TextButton(onClick={selected=0;onWorkout(if(s.gentle)"flow" else "start")}){Text("Antrenmanı aç")}})
+ val week=weeklyProgram(s.answers(),s.gentle);val current=(journeyDay(s)-1)%7
+ PageColumn{
+  TopBar("Haftalık program")
+  Text("Bu hafta,\nsenin ritminde.",style=MaterialTheme.typography.headlineLarge)
+  QuietText(programReason(s.answers(),s.gentle))
+  WeekStrip(week,current)
+  ProgramList(week,current,onWorkout)
+  QuietText("Koşu günleri arasında toparlan. İhtiyacın varsa bir gün daha dinlenebilirsin.")
+ }
 }
 
 @Composable fun ProgressScreen(s:UserState,onSleep:()->Unit){

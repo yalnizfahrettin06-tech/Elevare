@@ -30,9 +30,10 @@ class Store(private val context: Context) {
     fun pauseTimer() { state.active?.takeIf { it.running }?.let { a -> update { it.copy(active=a.copy(remaining=remaining(a),running=false,deadline=0)) } } }
     fun export(): String = encode(state.copy(active=null)).toString(2)
     private fun encode(s: UserState): JSONObject = JSONObject().apply {
-        put("version",5);put("ready",s.ready);put("name",s.name);put("start",s.start)
+        put("version",7);put("ready",s.ready);put("name",s.name);put("start",s.start)
         put("onboardingVersion",s.onboardingVersion);put("age",s.age);put("heightCm",s.heightCm);put("targetCm",s.targetCm);put("dailyMinutes",s.dailyMinutes);put("trialDays",s.trialDays);put("reminders",s.reminders)
         put("focus",s.focus);put("recentGrowth",s.recentGrowth);put("sleepHabit",s.sleepHabit);put("activityHabit",s.activityHabit);put("safety",s.safety);put("voiceCoach",s.voiceCoach);put("timerSound",s.timerSound)
+        put("environment",s.environment);put("trainingDays",s.trainingDays);put("autoAdvance",s.autoAdvance)
         put("favorites",JSONArray(s.favorites.toList()))
         put("done",JSONObject().apply { s.done.forEach { (k,v) -> put(k,JSONArray(v.toList())) } })
         put("sessions",JSONArray().apply { s.sessions.forEach { l -> put(JSONObject().apply {put("id",l.id);put("title",l.title);put("date",l.date);put("seconds",l.seconds);put("feeling",l.feeling);put("type",l.type)}) } })
@@ -46,19 +47,19 @@ class Store(private val context: Context) {
         fun strings(a: JSONArray?) = if(a==null) emptySet() else (0 until a.length()).map {a.getString(it)}.toSet()
         val rawDone = j.optJSONObject("done")?:JSONObject()
         val active=j.optJSONObject("active")?.let { a ->
-            val w=Content.workouts.find{it.id==a.optString("workoutId")}?:return@let null
+            val w=runCatching{Content.workout(a.optString("workoutId"))}.getOrNull()?:return@let null
             val index=a.optInt("step").coerceIn(0,w.steps.lastIndex)
             ActiveSession(w.id,index,a.optInt("remaining").coerceIn(0,w.steps[index].seconds),0,false,a.optInt("elapsed").coerceAtLeast(0),a.optString("date"),a.optString("id"),a.optInt("planDay",1))
         }
         return UserState(
             ready=j.optBoolean("ready"),name=j.optString("name").take(24),start=j.optString("start").let {java.time.LocalDate.parse(it).toString()},
-            favorites=strings(j.optJSONArray("favorites")).filter { id -> Content.workouts.any{it.id==id} }.toSet(),
+            favorites=strings(j.optJSONArray("favorites")).filter { id -> runCatching{Content.workout(id)}.isSuccess }.toSet(),
             done=rawDone.keys().asSequence().associateWith {strings(rawDone.optJSONArray(it))},
             sessions=list(j.optJSONArray("sessions")).map { SessionLog(it.getString("id"),it.getString("title"),it.getString("date"),it.getInt("seconds"),it.optString("feeling"),it.optString("type","workout")) },
             sleeps=list(j.optJSONArray("sleep")).map { SleepLog(it.getString("date"),it.getString("bed"),it.getString("wake")) }.filter { it.minutes>0 },
-            bed=j.optString("bed","22:00"),wake=j.optString("wake","07:00"),reducedMotion=j.optBoolean("reduced"),dark=j.optBoolean("dark"),haptic=j.optBoolean("haptic",true),gentle=j.optBoolean("gentle"),
+            bed=j.optString("bed","22:00"),wake=j.optString("wake","07:00"),reducedMotion=j.optBoolean("reduced"),dark=true,haptic=j.optBoolean("haptic",true),gentle=j.optBoolean("gentle"),
             pausedOn=if(j.isNull("pausedOn"))null else j.optString("pausedOn"),pausedDays=j.optLong("pausedDays"),active=active,
-            onboardingVersion=j.optInt("onboardingVersion"),age=j.optInt("age"),heightCm=j.optInt("heightCm"),targetCm=j.optInt("targetCm"),dailyMinutes=j.optInt("dailyMinutes",5),trialDays=normalizeTrialDays(j.optInt("trialDays")),reminders=j.optBoolean("reminders"),focus=j.optString("focus"),recentGrowth=j.optString("recentGrowth"),sleepHabit=j.optString("sleepHabit"),activityHabit=j.optString("activityHabit"),safety=j.optString("safety"),voiceCoach=j.optBoolean("voiceCoach",true),timerSound=j.optString("timerSound","countdown").takeIf{it in listOf("off","countdown","every_second")}?:"countdown"
+            onboardingVersion=j.optInt("onboardingVersion"),age=j.optInt("age"),heightCm=j.optInt("heightCm"),targetCm=j.optInt("targetCm"),dailyMinutes=j.optInt("dailyMinutes",5),trialDays=normalizeTrialDays(j.optInt("trialDays")),reminders=j.optBoolean("reminders"),focus=j.optString("focus"),recentGrowth=j.optString("recentGrowth"),sleepHabit=j.optString("sleepHabit"),activityHabit=j.optString("activityHabit"),safety=j.optString("safety"),voiceCoach=j.optBoolean("voiceCoach",true),environment=j.optString("environment"),trainingDays=j.optInt("trainingDays"),autoAdvance=j.optBoolean("autoAdvance",true),timerSound=j.optString("timerSound","countdown").takeIf{it in listOf("off","countdown","every_second")}?:"countdown"
         )
     }
 }

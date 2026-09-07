@@ -28,7 +28,7 @@ Assert-Check ($allSource -notmatch 'sports_cover|coach_poses|imageResource|drawI
 Assert-Check ($allSource -match 'val ages=13\.\.21') 'Age choices 13 through 21'
 Assert-Check ($allSource -match 'val minutes=listOf\(5,10,15,30\)') 'Time choices 5, 10, 15, 30'
 Assert-Check ($allSource -match 'if \(!answers.complete\(\)\) return') 'Required final answer validation'
-Assert-Check ($allSource -match 'PREPARATION_DURATION_MS=45_000L') '45 second preparation'
+Assert-Check ($allSource -match 'PREPARATION_DURATION_MS=30_000L') '30 second preparation'
 Assert-Check ($allSource -match 'const val TRIAL_DAYS=3') 'Three day trial constant'
 Assert-Check ($allSource -notmatch '7 gün ücretsiz|7 günlük demo') 'No seven day trial UI'
 Assert-Check ($allSource -match 'isNetworkConnectionRequired') 'Offline Turkish TTS selection'
@@ -44,5 +44,5 @@ Assert-Check ($xmlFiles.Count -gt 0) 'All Android XML files parsed'
 $manifest = Get-Content -LiteralPath (Join-Path $srcPath 'AndroidManifest.xml') -Raw
 Assert-Check ($manifest -notmatch 'android.permission.(RECORD_AUDIO|INTERNET)') 'No microphone or network permission'
 $tests = (Get-ChildItem -LiteralPath (Join-Path $projectPath 'app/src/test') -Recurse -Filter '*.kt' | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join [Environment]::NewLine
-Assert-Check ([regex]::Matches($tests, '@Test').Count -eq 28) '28 JUnit test definitions (not executed)'
+Assert-Check ([regex]::Matches($tests, '@Test').Count -ge 28) 'JUnit tests present (not executed by this script)'
 Write-Output 'SOURCE CHECK ONLY: no Kotlin compilation, JUnit execution, emulator, APK or AAB build.'

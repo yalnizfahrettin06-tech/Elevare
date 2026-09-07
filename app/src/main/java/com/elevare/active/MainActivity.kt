@@ -69,7 +69,7 @@ private val destinations=listOf(Destination("Bugün",Icons.Rounded.Home),Destina
     fun startWorkout(id:String){
         if(store.state.pausedOn!=null||!trainingAllowed(store.state)){message("Önce plan uygunluğunu gözden geçir.");return}
         store.update{beginWorkout(it,id)}
-        prepareWorkout="";go("session")
+        prepareWorkout="";if(store.state.active!=null)go("session")else message("Bugün toparlanma zamanı. Ana ekrandaki programına dön.")
     }
     val export=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")){uri->
         if(uri!=null) try { context.contentResolver.openOutputStream(uri)?.use{it.write(store.export().toByteArray(Charsets.UTF_8))};message("Kayıt dosyan hazır.") }catch(_:Exception){message("Dosya kaydedilemedi. Tekrar deneyebilirsin.")}
@@ -78,18 +78,18 @@ private val destinations=listOf(Destination("Bugün",Icons.Rounded.Home),Destina
     BackHandler(enabled=page.isNotBlank()){ if(page=="session") store.pauseTimer();page="" }
     Scaffold(
         containerColor=MaterialTheme.colorScheme.background,
-        bottomBar={ if(s.ready&&s.onboardingVersion>=5&&page.isBlank()) NavigationBar(containerColor=MaterialTheme.colorScheme.surface,tonalElevation=0.dp) { destinations.forEachIndexed { i,d -> NavigationBarItem(selected=tab==i,onClick={tab=i;if(s.haptic)haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)},icon={Icon(d.icon,null,Modifier.size(23.dp))},label={Text(d.label,fontSize=10.sp,fontWeight=FontWeight.Bold,maxLines=1)},colors=NavigationBarItemDefaults.colors(selectedIconColor=Ink,indicatorColor=Lime,selectedTextColor=MaterialTheme.colorScheme.onBackground,unselectedTextColor=MaterialTheme.colorScheme.onSurfaceVariant)) } } },
+        bottomBar={ if(s.ready&&s.onboardingVersion>=7&&page.isBlank()) NavigationBar(containerColor=MaterialTheme.colorScheme.surface,tonalElevation=0.dp) { destinations.forEachIndexed { i,d -> NavigationBarItem(selected=tab==i,onClick={tab=i;if(s.haptic)haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)},icon={Icon(d.icon,null,Modifier.size(23.dp))},label={Text(d.label,fontSize=10.sp,fontWeight=FontWeight.Bold,maxLines=1)},colors=NavigationBarItemDefaults.colors(selectedIconColor=Ink,indicatorColor=Lime,selectedTextColor=MaterialTheme.colorScheme.onBackground,unselectedTextColor=MaterialTheme.colorScheme.onSurfaceVariant)) } } },
         snackbarHost={if(notice.isNotBlank()) Snackbar(Modifier.padding(16.dp)){Text(notice)}}
     ){padding->
         Box(Modifier.fillMaxSize().padding(padding)){key(page,tab){
-            if(!s.ready||s.onboardingVersion<5) GrowthOnboarding(store)
+            if(!s.ready||s.onboardingVersion<7) GrowthOnboarding(store)
             else if(page=="session"&&!trainingAllowed(s)) SourcesScreen(onBack={page=""},onLink={message("Bilgi sekmesinden kaynakları okuyabilirsin.")})
             else if(page=="session") SessionScreen(store,onClose={store.pauseTimer();page=""},onSaved={page="";tab=0;message("Antrenman tamamlandı. Kaydın hazır!")})
             else if(page.startsWith("workout:")) WorkoutDetail(Content.workout(page.substringAfter(":")),s,onBack={page=""},onFavorite={id->store.update{it.copy(favorites=if(id in it.favorites)it.favorites-id else it.favorites+id)}},onStart={w->
                 if(!trainingAllowed(s)){message("Önce Profil bölümünden antrenman uygunluğunu gözden geçir.")}
                 else if(s.pausedOn!=null){message("Planın dinlenmede. Profilinden devam edebilirsin.")}
                 else if(s.active!=null){go("session");message("Açık seansına dönüyorsun.")}
-                else{store.update{beginWorkout(it,w.id)};go("session")}
+                else{prepareWorkout=w.id}
             },onMove={go("move:"+it)})
             else if(page.startsWith("move:")) MoveDetail(if(page.substringAfter(":")=="sprint")SprintGuide else Content.move(page.substringAfter(":")),s.reducedMotion,onBack={page=""})
             else if(page=="sleep") SleepScreen(store,onBack={page=""},notify=::message)
@@ -103,7 +103,7 @@ private val destinations=listOf(Destination("Bugün",Icons.Rounded.Home),Destina
                 Column(Modifier.fillMaxSize()){
                     if(s.active!=null&&tab!=0) Row(Modifier.fillMaxWidth().background(Blue).clickable{go("session")}.padding(horizontal=20.dp,vertical=12.dp),verticalAlignment=Alignment.CenterVertically){Icon(Icons.Rounded.PlayArrow,null,tint=Color.White);Text("Seansa devam et",Modifier.weight(1f),color=Color.White,fontWeight=FontWeight.Bold,fontSize=13.sp);Icon(Icons.Rounded.ArrowForward,null,tint=Color.White)}
                     when(tab){
-                        0->GrowthHome(s,onWorkout={go("workout:"+it)},onStart={if(s.active!=null)go("session")else prepareWorkout=it},onSleep={go("sleep")},onArticle={go("fact:"+it)},onResumePlan={store.update{resumePlan(it)};message("Planın devam ediyor.")},onReview={store.update{it.copy(onboardingVersion=0)}})
+                        0->GrowthHome(s,onWorkout={if(it=="guide:sprint")go("move:sprint")else go("workout:"+it)},onStart={if(s.active!=null)go("session")else prepareWorkout=it},onSleep={go("sleep")},onArticle={go("fact:"+it)},onResumePlan={store.update{resumePlan(it)};message("Planın devam ediyor.")},onReview={store.update{it.copy(onboardingVersion=0)}})
                         1->ExploreScreen(s,onWorkout={go("workout:"+it)},onMove={go("move:"+it)},onFavorite={id->store.update{it.copy(favorites=if(id in it.favorites)it.favorites-id else it.favorites+id)}})
                         2->FactLibrary(s,onFact={go("fact:"+it)})
                         3->CompactProfileScreen(store,onSources={go("sources")},onSleep={go("sleep")},onExport={export.launch("elevare-kayitlarim.json")},onDelete={showDelete=true},onPlan={go("plan")},onProgress={go("progress")},onTrial={go("trial")},notify=::message)
@@ -114,7 +114,7 @@ private val destinations=listOf(Destination("Bugün",Icons.Rounded.Home),Destina
     }
     }
     if(showDelete) AlertDialog(onDismissRequest={showDelete=false},title={Text("Kayıtlar silinsin mi?")},text={Text("Bu cihazdaki seanslar, uyku kayıtları ve tercihler silinir. Bu işlem geri alınamaz.")},confirmButton={TextButton(onClick={store.reset();showDelete=false;page="";tab=0}){Text("Kayıtları sil")}},dismissButton={TextButton(onClick={showDelete=false}){Text("Vazgeç")}})
-    if(prepareWorkout.isNotBlank()) AlertDialog(onDismissRequest={prepareWorkout=""},title={Text("Hazır mısın?")},text={Column(verticalArrangement=Arrangement.spacedBy(12.dp)){Text(if(s.age<18)"Rahat bir alan aç. İlk denemede güvendiğin bir yetişkinden destek al. Ağrı veya baş dönmesinde dur." else "Rahat bir alan aç. Tekniğinden emin değilsen bir antrenörden destek al. Ağrı veya baş dönmesinde dur.");QuietText(if(prepareWorkout=="runprep")"5 dk · Koşuya hazırlık; maksimal sprint değil." else "${minutesText(Content.workout(prepareWorkout).seconds)} · ${Content.workout(prepareWorkout).equipment}")}},confirmButton={TextButton(onClick={startWorkout(prepareWorkout)}){Text("Başla")}},dismissButton={TextButton(onClick={prepareWorkout=""}){Text("Şimdi değil")}})
+    if(prepareWorkout.isNotBlank()) AlertDialog(onDismissRequest={prepareWorkout=""},title={Text("Hazır mısın?")},text={Column(verticalArrangement=Arrangement.spacedBy(12.dp)){Text(if(s.age<18)"Rahat bir alan aç. İlk denemede güvendiğin bir yetişkinden destek al. Ağrı veya baş dönmesinde dur." else "Rahat bir alan aç. Tekniğinden emin değilsen bir antrenörden destek al. Ağrı veya baş dönmesinde dur.");QuietText(if(Content.workout(prepareWorkout).hasSprint())"Düz, kuru ve açık bir koşu alanı seç. Isınma ve yürüyüş araları programa dahil." else "${minutesText(Content.workout(prepareWorkout).seconds)} · ${Content.workout(prepareWorkout).equipment}")}},confirmButton={TextButton(onClick={startWorkout(prepareWorkout)}){Text("Başla")}},dismissButton={TextButton(onClick={prepareWorkout=""}){Text("Şimdi değil")}})
 }
 
 @Composable fun PageColumn(content:@Composable ColumnScope.()->Unit) {
@@ -129,7 +129,7 @@ private val destinations=listOf(Destination("Bugün",Icons.Rounded.Home),Destina
 }
 @Composable fun Tag(text:String,color:Color=Lime,textColor:Color=Ink) { Box(Modifier.background(color,RoundedCornerShape(6.dp)).padding(horizontal=9.dp,vertical=5.dp)){Text(text,color=textColor,fontWeight=FontWeight.Bold,fontSize=10.sp,letterSpacing=.7.sp)} }
 @Composable fun BigButton(text:String,onClick:()->Unit,modifier:Modifier=Modifier,icon:ImageVector=Icons.Rounded.ArrowForward,enabled:Boolean=true,dark:Boolean=true) {
-    Button(onClick=onClick,enabled=enabled,modifier=modifier.fillMaxWidth().heightIn(min=54.dp),shape=RoundedCornerShape(14.dp),colors=ButtonDefaults.buttonColors(containerColor=if(dark)Blue else Blue,contentColor=Color.White),contentPadding=PaddingValues(horizontal=20.dp,vertical=14.dp)){
+    Button(onClick=onClick,enabled=enabled,modifier=modifier.fillMaxWidth().heightIn(min=54.dp),shape=RoundedCornerShape(16.dp),colors=ButtonDefaults.buttonColors(containerColor=if(dark)Blue else Blue,contentColor=Color.White),contentPadding=PaddingValues(horizontal=20.dp,vertical=14.dp)){
         Text(text,Modifier.weight(1f),fontWeight=FontWeight.ExtraBold,fontSize=15.sp,textAlign=TextAlign.Start);Icon(icon,null,Modifier.size(23.dp))
     }
 }

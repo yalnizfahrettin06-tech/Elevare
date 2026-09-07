@@ -1,36 +1,54 @@
 package com.elevare.active
 import kotlin.math.*
 
-fun sprintFrames():List<StickFrame> = listOf(
- frame(61,16,57,28,47,55,43,31,48,18,66,43,77,36,66,56,76,73,33,75,20,83),
- frame(58,13,54,25,47,52,41,37,31,31,66,30,72,18,53,74,46,92,39,66,24,62),
- frame(61,16,57,28,47,55,66,43,77,36,43,31,48,18,33,75,20,83,66,56,76,73),
- frame(58,13,54,25,47,52,66,30,72,18,41,37,31,31,39,66,24,62,53,74,46,92)
-)
-fun motionDuration(id:String)=when(id){"sprint"->1800;"walk"->2400;"march"->2800;"squat","wall"->4800;"calf","reach"->4000;else->3600}
+private val TAU=(2.0*PI).toFloat()
+private fun smooth(t:Float)=t*t*(3f-2f*t)
+fun sprintFrames():List<StickFrame> = (0..3).map{runningFrame(it/4f)}
+fun motionDuration(id:String)=when(id){"sprint"->820;"walk","march"->1600;"catcow"->8000;"child"->10000;"lunge"->10000;"squat","wall"->4500;else->5000}
 fun motionFrame(id:String,cycle:Float):StickFrame{
- val t=if(cycle.isFinite())cycle.coerceIn(0f,1f) else 0f
- if(id!="sprint"){
-  val phase=when {t<.12f->0f;t<.45f->(t-.12f)/.33f;t<.57f->1f;t<.90f->1f-(t-.57f)/.33f;else->0f}
-  return stickFrame(id,phase)
+ val t=if(cycle.isFinite())((cycle%1f)+1f)%1f else 0f
+ if(id in listOf("sprint","walk","march"))return runningFrame(t,id!="sprint")
+ val phase=(1f-cos(t*TAU))/2f
+ return stickFrame(id,smooth(phase))
+}
+// A continuous two-contact stride. Feet follow a grounded stance then a lifted swing.
+// Inverse kinematics keeps thigh/shin lengths constant, including between rendered frames.
+fun runningFrame(t:Float,walking:Boolean=false):StickFrame{
+ val cycle=t%1f;val a=cycle*TAU
+ val hip=Joint(48f,54f-1.8f*sin(a*2f)*sin(a*2f))
+ val neck=Joint(hip.x+if(walking)2f else 6f,hip.y-26f)
+ val head=Joint(neck.x+1f,neck.y-12f)
+ fun end(root:Joint,length:Float,angle:Float)=Joint(root.x+length*cos(angle),root.y+length*sin(angle))
+ fun leg(offset:Float):Pair<Joint,Joint>{
+  val phase=(cycle+offset)%1f
+  val stance=if(walking).6f else .42f
+  val foot=if(phase<stance){
+   Joint(61f-29f*(phase/stance),94f)
+  }else{
+   val u=(phase-stance)/(1f-stance)
+   Joint(32f+29f*smooth(u),94f-(if(walking)13f else 31f)*sin(PI.toFloat()*u))
+  }
+  val dx=foot.x-hip.x;val dy=foot.y-hip.y
+  val distance=hypot(dx,dy).coerceIn(.01f,45.99f)
+  val h=sqrt((23f*23f-distance*distance/4f).coerceAtLeast(0f))
+  val knee=Joint(hip.x+dx/2f+dy/distance*h,hip.y+dy/2f-dx/distance*h)
+  return knee to foot
  }
- val frames=sprintFrames()
- val at=(t%1f)*frames.size
- val index=at.toInt().coerceAtMost(frames.lastIndex)
- val a=frames[index];val z=frames[(index+1)%frames.size];val blend=at-index
- val result=MutableList(11){Joint(0f,0f)}
- result[2]=Joint(a.joints[2].x+(z.joints[2].x-a.joints[2].x)*blend,a.joints[2].y+(z.joints[2].y-a.joints[2].y)*blend)
- // Rotate fixed-length segments so arms and legs do not shrink during the stride.
- for((parent,child) in listOf(2 to 1,1 to 0,1 to 3,3 to 4,1 to 5,5 to 6,2 to 7,7 to 8,2 to 9,9 to 10)){
-  fun angle(f:StickFrame)=atan2(f.joints[child].y-f.joints[parent].y,f.joints[child].x-f.joints[parent].x)
-  val length=frames.map{f->hypot(f.joints[child].x-f.joints[parent].x,f.joints[child].y-f.joints[parent].y)}.average().toFloat()
-  val start=angle(a);val delta=atan2(sin(angle(z)-start),cos(angle(z)-start));val theta=start+delta*blend
-  val root=result[parent];result[child]=Joint(root.x+cos(theta)*length,root.y+sin(theta)*length)
+ fun arm(offset:Float):Pair<Joint,Joint>{
+  val angle=1.55f+sin(a+offset)*if(walking).45f else .85f
+  val elbow=end(neck,16f,angle)
+  val hand=end(elbow,15f,angle-1.8f)
+  return elbow to hand
  }
- return StickFrame(result)
+ val frontLeg=leg(0f);val rearLeg=leg(.5f)
+ val frontArm=arm(PI.toFloat());val rearArm=arm(0f)
+ return StickFrame(listOf(head,neck,hip,frontArm.first,frontArm.second,rearArm.first,rearArm.second,frontLeg.first,frontLeg.second,rearLeg.first,rearLeg.second))
 }
 fun motionCue(id:String)=when(id){
- "sprint"->"Karşı kol · karşı bacak"
+ "sprint"->"Rahat omuzlar · karşı kol ve bacak"
+ "catcow"->"Nefes ver, yuvarlan · nefes al, açıl"
+ "child"->"Yavaşça geriye otur · rahat nefes al"
+ "lunge"->"Gövdeni uzat · ortada taraf değiştir"
  "squat"->"Yavaş otur · kontrollü kalk"
  "wall"->"Eller duvarda · kontrollü it"
  "calf"->"Desteği tut · topukları kaldır"
@@ -47,6 +65,9 @@ data class StickFrame(val joints:List<Joint>,val support:String="")
 private fun frame(vararg xy:Int,support:String="")=StickFrame(xy.toList().chunked(2).map{Joint(it[0].toFloat(),it[1].toFloat())},support)
 private val standing=frame(50,16,50,28,50,57,38,41,34,53,62,41,66,53,40,74,35,94,60,74,65,94)
 fun stickFrames(id:String):Pair<StickFrame,StickFrame> = when(id){
+ "catcow"->frame(78,53,68,59,37,64,69,76,70,94,64,77,64,94,36,94,20,94,42,94,26,94) to frame(77,63,67,57,36,58,68,75,70,94,62,76,64,94,36,94,20,94,42,94,26,94)
+ "child"->frame(69,65,59,70,33,78,73,82,87,93,66,83,81,93,41,94,20,94,36,94,16,94) to frame(65,72,54,76,29,82,70,87,87,93,63,87,81,93,41,94,20,94,36,94,16,94)
+ "lunge"->frame(51,25,49,37,46,66,61,50,70,63,39,53,43,68,72,72,78,94,26,94,12,94) to frame(56,24,54,36,51,66,66,49,74,62,44,52,48,67,73,72,78,94,26,94,12,94)
  "march","walk"->frame(50,16,50,28,50,57,35,36,26,48,65,42,71,29,32,68,32,86,62,75,70,94) to frame(50,16,50,28,50,57,35,42,29,29,65,36,74,48,38,75,30,94,68,68,68,86)
  "shoulder"->standing to frame(50,16,50,28,50,57,32,30,24,43,68,30,76,43,40,74,35,94,60,74,65,94)
  "squat"->frame(47,16,47,28,47,57,32,37,22,35,62,37,72,35,38,75,35,94,59,75,65,94,support="chair") to frame(44,35,46,47,58,68,29,50,17,49,62,50,74,49,35,69,35,94,73,69,75,94,support="chair")

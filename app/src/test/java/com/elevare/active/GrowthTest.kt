@@ -2,7 +2,7 @@ package com.elevare.active
 import org.junit.Assert.*
 import org.junit.Test
 class GrowthTest{
- @Test fun onlyThreeDayTrial(){assertEquals(3,TRIAL_DAYS);assertEquals(3,normalizeTrialDays(7));assertEquals(3,normalizeTrialDays(3));assertEquals(0,normalizeTrialDays(0));assertEquals(0,normalizeTrialDays(-1));assertEquals(10,ONBOARDING_STEPS)}
+ @Test fun onlyThreeDayTrial(){assertEquals(3,TRIAL_DAYS);assertEquals(3,normalizeTrialDays(7));assertEquals(3,normalizeTrialDays(3));assertEquals(0,normalizeTrialDays(0));assertEquals(0,normalizeTrialDays(-1));assertEquals(12,ONBOARDING_STEPS)}
  @Test fun quickStart(){val s=beginWorkout(UserState(safety="clear"),"runprep",1000);assertEquals("runprep",s.active!!.workoutId);assertEquals(61000L,s.active!!.deadline);assertEquals(60,s.active!!.remaining)}
  @Test fun quickStartPreservesExistingSession(){val first=beginWorkout(UserState(safety="clear"),"runprep");assertEquals(first,beginWorkout(first,"breath"))}
  @Test fun pausedPlanCannotStart(){val paused=UserState(safety="clear",pausedOn=java.time.LocalDate.now().toString());assertEquals(paused,beginWorkout(paused,"runprep"));assertNull(resumePlan(paused).pausedOn)}

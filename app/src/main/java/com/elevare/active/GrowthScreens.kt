@@ -28,7 +28,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.*
 
 const val TRIAL_DAYS=3
-const val ONBOARDING_STEPS=10
+const val ONBOARDING_STEPS=12
 fun normalizeTrialDays(value:Int)=if(value>0)TRIAL_DAYS else 0
 fun validHeight(value:String)=value.isBlank()||(value.toIntOrNull()?.let{it in 90..230}==true)
 fun shortWorkoutTitle(w:Workout)=w.title.lowercase(java.util.Locale.forLanguageTag("tr")).replaceFirstChar{it.titlecase(java.util.Locale.forLanguageTag("tr"))}
@@ -78,28 +78,21 @@ fun evidenceLabel(id:String)=when(id){"milk"->"Süt ve büyüme";"sprint"->"Spri
 }
 
 @Composable fun GrowthHome(s:UserState,onWorkout:(String)->Unit,onStart:(String)->Unit,onSleep:()->Unit,onArticle:(String)->Unit,onResumePlan:()->Unit,onReview:()->Unit){
- val plan=routinePlan(s.answers(),s.gentle)
- val completed=s.sessions.lastOrNull{it.date==java.time.LocalDate.now().toString()&&it.type=="workout"}
- val doneToday=completed!=null&&s.active==null
- val completedId=if(doneToday)Content.workouts.find{it.title==completed?.title}?.id else null
- val w=Content.workout(s.active?.workoutId?:completedId?:plan.workoutId)
+ val day=todayProgram(s)
+ val week=weeklyProgram(s.answers(),s.gentle)
+ val done=s.sessions.any{it.date==java.time.LocalDate.now().toString()&&it.type=="workout"}&&s.active==null
+ val w=s.active?.let{Content.workout(it.workoutId)}?:day.workout
+ val blocked=!trainingAllowed(s)
  PageColumn{
-  TopBar("elevare")
-  QuietText(if(s.name.isBlank())"Bugün harekete yer aç." else "Hazır mısın, ${s.name}?")
-  Surface(color=Mint,shape=RoundedCornerShape(16.dp)){
-   Column(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
-    Text(if(doneToday)"BUGÜN TAMAMLANDI" else "BUGÜNKÜ SEANS",color=Ink,fontSize=11.sp,fontWeight=FontWeight.Bold)
-    Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(14.dp)){
-     Column(Modifier.weight(1f)){Text(shortWorkoutTitle(w),color=Ink,fontSize=24.sp,lineHeight=29.sp,fontWeight=FontWeight.Bold);Text("${minutesText(w.seconds)} · ${w.movementCount} hareket",color=Ink,fontSize=13.sp)}
-     Pose(if(doneToday)"reach" else w.steps.first().moveId,Modifier.size(96.dp),Ink,true)
-    }
-    BigButton(if(plan.blocked)"Yanıtlarını gözden geçir" else if(s.pausedOn!=null)"Planıma devam et" else if(s.active!=null)"Seansa devam et" else if(doneToday)"Seansı incele" else "Antrenmana başla",{if(plan.blocked)onReview()else if(s.pausedOn!=null)onResumePlan()else if(doneToday)onWorkout(w.id)else onStart(w.id)},icon=if(doneToday)Icons.Rounded.Check else Icons.Rounded.PlayArrow)
-    if(plan.blocked)Text(plan.note,color=Ink,fontSize=13.sp)else if(!doneToday)TextButton(onClick={onWorkout(w.id)}){Text("Hareketleri gör",color=Ink)}
-   }
-  }
-  QuietText(if(doneToday)"Bugünkü antrenmanın kaydedildi." else if(s.active!=null)"Kaldığın hareketten devam edebilirsin." else if(!plan.blocked)plan.note else "Bilgi içerikleri her zaman açık.")
+  Row(verticalAlignment=Alignment.CenterVertically){Text("elevare",Modifier.weight(1f),fontSize=25.sp,fontWeight=FontWeight.Black);Tag("WORKOUT",Mint,Sky)}
+  WeekStrip(week,day.index,java.time.LocalDate.now().minusDays(day.index.toLong()))
+  WorkoutHero(w,s.reducedMotion,label=if(done)"BUGÜN TAMAMLANDI" else if(!day.training)"TOPARLANMA GÜNÜ" else "BUGÜNÜN ANTRENMANI",
+   button=if(blocked)"Yanıtlarını gözden geçir" else if(s.pausedOn!=null)"Planıma devam et" else if(s.active!=null)"Antrenmana devam et" else if(done)"Antrenmanı incele" else if(!day.training)"Toparlanmaya başla" else "Antrenmana başla",
+   onStart={when{blocked->onReview();s.pausedOn!=null->onResumePlan();done->onWorkout(w.id);else->onStart(w.id)}},
+   onGuide={onWorkout(if(w.hasSprint())"guide:sprint" else w.id)})
+  if(blocked)QuietText(programReason(s.answers())) else if(done)QuietText("Kaydın hazır. Bugün toparlanmaya da yer aç.")
   TodayScience(s,onArticle)
-  MenuRow("Uyku planı",s.bed,Icons.Rounded.Bedtime,onSleep)
+  MenuRow("Geceyi planla","${s.bed} · ${if(s.reminders)"Hatırlatıcı açık" else "Hatırlatıcı ayarla"}",Icons.Rounded.Bedtime,onSleep)
  }
 }
 

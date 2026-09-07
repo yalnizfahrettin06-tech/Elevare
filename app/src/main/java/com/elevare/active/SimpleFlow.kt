@@ -15,7 +15,12 @@ import java.time.temporal.ChronoUnit
 
 fun beginWorkout(s:UserState,id:String,now:Long=System.currentTimeMillis()):UserState {
  if(s.pausedOn!=null||s.active!=null||!trainingAllowed(s))return s
- val w=Content.workouts.find{it.id==id}?:return s
+ val w=runCatching{Content.workout(id)}.getOrNull()?:return s
+ if(w.hasSprint()){
+  if(s.environment !in listOf("outdoor","both")||s.sleepHabit=="under6"||s.gentle)return s
+  val recent=s.sessions.any{it.title=="Sprint intervalleri"&&runCatching{ChronoUnit.DAYS.between(LocalDate.parse(it.date),LocalDate.now()) in 0..1}.getOrDefault(false)}
+  if(recent)return s
+ }
  val first=w.steps.first()
  return s.copy(active=ActiveSession(w.id,remaining=first.seconds,deadline=now+first.seconds*1000L,planDay=journeyDay(s)))
 }
@@ -27,8 +32,8 @@ fun resumePlan(s:UserState):UserState=if(s.pausedOn==null)s else s.copy(pausedDa
  var pause by remember{mutableStateOf(false)}
  PageColumn{
   TopBar("Profil")
-  Text(if(s.name.isBlank())"Senin alanın" else s.name,fontSize=24.sp,fontWeight=FontWeight.Bold)
-  QuietText("${s.sessions.size} tamamlanan seans")
+  Text(if(s.name.isBlank())"Antrenman profilin" else s.name,fontSize=24.sp,fontWeight=FontWeight.Bold)
+  QuietText("${s.sessions.size} seans · Haftada ${s.trainingDays} gün · ${s.dailyMinutes} dk")
   MenuRow("İlerlemem",icon=Icons.Rounded.BarChart,onClick=onProgress)
   MenuRow("Takvim",icon=Icons.Rounded.CalendarMonth,onClick=onPlan)
   ExpandSection("Kişisel bilgiler",Icons.Rounded.PersonOutline){
@@ -48,7 +53,7 @@ fun resumePlan(s:UserState):UserState=if(s.pausedOn==null)s else s.copy(pausedDa
    listOf("off" to "Süre sesi kapalı","countdown" to "Son 3 saniye","every_second" to "Her saniye").forEach{(value,label)->Choice(label,selected=s.timerSound==value){store.update{it.copy(timerSound=value)}}}
   }
   ExpandSection("Görünüm ve tercihler",Icons.Rounded.Tune){
-   SettingToggle("Koyu görünüm","",s.dark){v->store.update{it.copy(dark=v)}}
+   QuietText("Workout görünümü · gece mavisi")
    SettingToggle("Azaltılmış hareket","Figür ve nefes animasyonunu durdur",s.reducedMotion){v->store.update{it.copy(reducedMotion=v)}}
    SettingToggle("Titreşim","",s.haptic){v->store.update{it.copy(haptic=v)}}
    SettingToggle("Hafif antrenman","",s.gentle){v->store.update{it.copy(gentle=v)}}
@@ -61,7 +66,7 @@ fun resumePlan(s:UserState):UserState=if(s.pausedOn==null)s else s.copy(pausedDa
    TextButton(onClick=onDelete){Text("Tüm kayıtları sil",color=MaterialTheme.colorScheme.error)}
   }
   MenuRow("Elevare Pro","3 günlük demo",Icons.Rounded.AutoAwesome,onTrial)
-  QuietText("Elevare 0.6.0 · Prototip")
+  QuietText("Elevare 0.7.0")
  }
  if(pause)AlertDialog(onDismissRequest={pause=false},title={Text(if(s.pausedOn==null)"Plana ara ver?" else "Plana devam et?")},text={Text("Takvim tercihin değişir; geçmiş kayıtların korunur.")},confirmButton={TextButton(onClick={store.pauseTimer();store.update{if(it.pausedOn==null)it.copy(pausedOn=LocalDate.now().toString())else resumePlan(it)};pause=false}){Text("Onayla")}},dismissButton={TextButton(onClick={pause=false}){Text("Vazgeç")}})
 }

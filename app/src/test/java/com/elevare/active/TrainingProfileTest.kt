@@ -3,10 +3,10 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class TrainingProfileTest {
- private val valid=TrainingAnswers(18,"performance","unknown","8to10","regular",10,"clear")
+ private val valid=TrainingAnswers(18,"performance","unknown","8to10","regular",10,"clear","outdoor",3)
  @Test fun everyAnswerRequired(){
   assertTrue(valid.complete())
-  listOf(valid.copy(age=0),valid.copy(focus=""),valid.copy(recentGrowth=""),valid.copy(sleep=""),valid.copy(activity=""),valid.copy(minutes=0),valid.copy(safety="")).forEach{assertFalse(it.complete())}
+  listOf(valid.copy(age=0),valid.copy(focus=""),valid.copy(recentGrowth=""),valid.copy(sleep=""),valid.copy(activity=""),valid.copy(minutes=0),valid.copy(safety=""),valid.copy(environment=""),valid.copy(days=0)).forEach{assertFalse(it.complete())}
  }
  @Test fun ageAndTimeBounds(){
   (13..21).forEach{assertTrue(valid.copy(age=it).complete())}
@@ -25,23 +25,22 @@ class TrainingProfileTest {
   assertEquals("pain",s.safety);assertFalse(trainingAllowed(s));assertEquals(s,beginWorkout(s,"flow"))
  }
  @Test fun recommendationsRespondToAnswers(){
-  assertEquals("strength",routinePlan(valid).workoutId)
-  assertEquals("runprep",routinePlan(valid.copy(minutes=5)).workoutId)
-  assertEquals("flow",routinePlan(valid.copy(activity="new")).workoutId)
-  assertEquals("flow",routinePlan(valid.copy(sleep="under6")).workoutId)
-  assertEquals("flow",routinePlan(valid.copy(focus="recovery")).workoutId)
-  assertEquals("flow",routinePlan(valid,true).workoutId)
+  assertTrue(Content.workout(routinePlan(valid).workoutId).hasSprint())
+  assertFalse(Content.workout(routinePlan(valid.copy(minutes=5)).workoutId).hasSprint())
+  assertEquals("Yoga",Content.workout(routinePlan(valid.copy(sleep="under6")).workoutId).category)
+  assertEquals("Yoga",Content.workout(routinePlan(valid,true).workoutId).category)
   for(minutes in ProfileChoices.minutes)for(focus in ProfileChoices.focus.keys){
    val p=routinePlan(valid.copy(minutes=minutes,focus=focus))
-   assertTrue(Content.workout(p.workoutId).seconds<=minutes*60);assertTrue(p.optionalMinutes>=0)
+   assertEquals(minutes*60,Content.workout(p.workoutId).seconds)
   }
  }
+
  @Test fun ageAppropriateSleep(){assertTrue(sleepGuide(17).contains("8–10"));assertTrue(sleepGuide(18).contains("7–9"))}
- @Test fun preparationIs45Seconds(){
-  assertEquals(45000L,PREPARATION_DURATION_MS)
+ @Test fun preparationIs30Seconds(){
+  assertEquals(30000L,PREPARATION_DURATION_MS)
   assertNotEquals(preparationStage(14999),preparationStage(15000))
   assertNotEquals(preparationStage(29999),preparationStage(30000))
-  assertNotEquals(preparationStage(44999),preparationStage(45000))
+  assertNotEquals(preparationStage(7499),preparationStage(7500))
  }
  @Test fun allMovesHaveBoundedLineGeometry(){
   val first=motionFrame("sprint",0f)

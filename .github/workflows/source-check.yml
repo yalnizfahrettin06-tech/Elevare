@@ -19,12 +19,39 @@ jobs:
       - name: Verify source
         shell: pwsh
         run: ./scripts/verify-source.ps1
-      - name: Build debug APK
-        run: bash gradlew :app:assembleDebug --no-daemon --max-workers=2
+      - name: Build and test
+        run: bash gradlew :app:assembleDebug :app:testDebugUnitTest :app:assembleDebugAndroidTest --no-daemon --max-workers=2
       - name: Debug APK
-        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Elevare-0.6.0-debug-apk
+          name: Elevare-0.7.0-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Android device verification
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          target: default
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 2048
+          script: |
+            adb shell settings put system font_scale 1.0
+            bash gradlew :app:connectedDebugAndroidTest --no-daemon --max-workers=2
+            adb pull /sdcard/Android/data/com.elevare.active/files/qa device-qa
+      - name: Verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Elevare-0.7.0-verification
+          path: |
+            device-qa/
+            app/build/reports/
+            app/build/outputs/androidTest-results/
+          if-no-files-found: warn

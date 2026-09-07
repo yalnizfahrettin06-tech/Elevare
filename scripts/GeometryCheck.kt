@@ -16,11 +16,11 @@ fun main(){
   check(motionFrame(m.id,0f)==motionFrame(m.id,1f))
   for(i in 0..100)motionFrame(m.id,i/100f).joints.forEach{check(it.x.isFinite()&&it.y.isFinite())}
  }
- val a=TrainingAnswers(18,"performance","unknown","8to10","regular",10,"clear")
+ val a=TrainingAnswers(18,"performance","unknown","8to10","regular",10,"clear","outdoor",3)
  check(a.complete());check(!a.copy(age=22).complete());check(!a.copy(safety="").complete())
  check(routinePlan(a.copy(safety="pain")).blocked)
- check(PREPARATION_DURATION_MS==45000L)
+ check(PREPARATION_DURATION_MS==30000L)
  println("PASS: 1001 sprint frames, finite bounds, fixed limb lengths, loop seam, invalid phase.")
- println("PASS: 10 existing movement loops, required answers, safety block, 45 second preparation.")
+ println("PASS: Movement loops, required answers, safety block, 30 second preparation.")
  for(i in 0..7)println("FRAME|"+i+"|"+motionFrame("sprint",i/8f).joints.joinToString(";"){it.x.toString()+","+it.y})
 }
