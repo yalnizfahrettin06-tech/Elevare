@@ -18,7 +18,9 @@ class WorkoutJourneyTest {
  private val context=instrumentation.targetContext
  private val device=UiDevice.getInstance(instrumentation)
  @After fun exportEvidence(){
-  device.executeShellCommand("mkdir -p /sdcard/elevare-qa; cp -R /sdcard/Android/data/com.elevare.active/files/qa/. /sdcard/elevare-qa/")
+  device.executeShellCommand("mkdir -p /sdcard/elevare-qa")
+  val result=device.executeShellCommand("cp -R /sdcard/Android/data/com.elevare.active/files/qa/. /sdcard/elevare-qa/")
+  assertTrue("Could not retain screenshots: $result",result.isBlank())
  }
  private fun click(text:String){
   val node=device.wait(Until.findObject(By.text(text)),8000)?:error("Missing: $text")
