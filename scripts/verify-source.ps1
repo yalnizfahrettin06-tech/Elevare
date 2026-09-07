@@ -27,7 +27,7 @@ $allSource = ($kotlin | ForEach-Object { Get-Content -LiteralPath $_.FullName -R
 Assert-Check ($allSource -notmatch 'sports_cover|coach_poses|imageResource|drawImage') 'No old bitmap coach or photo rendering'
 Assert-Check ($allSource -match 'val ages=13\.\.21') 'Age choices 13 through 21'
 Assert-Check ($allSource -match 'val minutes=listOf\(5,10,15,30\)') 'Time choices 5, 10, 15, 30'
-Assert-Check ($allSource -match 'if\(!answers.complete\(\)\)return') 'Required final answer validation'
+Assert-Check ($allSource -match 'if \(!answers.complete\(\)\) return') 'Required final answer validation'
 Assert-Check ($allSource -match 'PREPARATION_DURATION_MS=45_000L') '45 second preparation'
 Assert-Check ($allSource -match 'const val TRIAL_DAYS=3') 'Three day trial constant'
 Assert-Check ($allSource -notmatch '7 gün ücretsiz|7 günlük demo') 'No seven day trial UI'
