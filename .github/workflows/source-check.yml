@@ -41,10 +41,7 @@ jobs:
           profile: pixel_2
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 2048
-          script: |
-            adb shell settings put system font_scale 1.0
-            bash gradlew :app:connectedDebugAndroidTest --no-daemon --max-workers=2
-            adb pull /sdcard/Android/data/com.elevare.active/files/qa device-qa
+          script: bash scripts/device-qa.sh
       - name: Verification evidence
         if: always()
         uses: actions/upload-artifact@v4
