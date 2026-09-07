@@ -1,4 +1,4 @@
-name: Source verification (no APK)
+name: Build Elevare Android APK
 on:
   workflow_dispatch:
 permissions:
@@ -19,8 +19,15 @@ jobs:
       - name: Verify source
         shell: pwsh
         run: ./scripts/verify-source.ps1
-      - name: Kotlin, unit tests and lint (no APK packaging)
-        run: bash gradlew :app:compileDebugKotlin :app:testDebugUnitTest :app:lintDebug --no-daemon --max-workers=2
+      - name: Build, test and lint
+        run: bash gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug --no-daemon --max-workers=2
+      - name: Debug APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Elevare-0.6.0-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
       - name: Test and lint reports
         if: always()
         uses: actions/upload-artifact@v4
