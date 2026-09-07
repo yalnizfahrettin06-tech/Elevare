@@ -8,6 +8,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.*
 import org.junit.Assert.*
 import org.junit.Test
+import org.junit.After
 import org.junit.runner.RunWith
 import java.io.File
 
@@ -16,6 +17,9 @@ class WorkoutJourneyTest {
  private val instrumentation=InstrumentationRegistry.getInstrumentation()
  private val context=instrumentation.targetContext
  private val device=UiDevice.getInstance(instrumentation)
+ @After fun exportEvidence(){
+  device.executeShellCommand("mkdir -p /sdcard/elevare-qa; cp -R /sdcard/Android/data/com.elevare.active/files/qa/. /sdcard/elevare-qa/")
+ }
  private fun click(text:String){
   val node=device.wait(Until.findObject(By.text(text)),8000)?:error("Missing: $text")
   node.click();Thread.sleep(450)

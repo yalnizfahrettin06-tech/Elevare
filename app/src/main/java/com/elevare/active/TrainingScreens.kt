@@ -182,7 +182,7 @@ import java.time.LocalDate
   fun point(x:Float,y:Float)=Offset(left+x*unit,(y+7f)*unit)
   fun p(index:Int)=point(pose.joints[index].x,pose.joints[index].y)
   fun line(a:Offset,b:Offset,tint:Color=color,width:Float=3.2f)=drawLine(tint,a,b,width*unit,StrokeCap.Round)
-  line(point(7f,98f),point(96f,98f),color.copy(alpha=.18f),1f)
+  line(point(7f,94f),point(96f,94f),color.copy(alpha=.18f),1f)
   if(id in listOf("sprint","walk","march")){
    for(i in 0..3){val x=((i*26f-phase*26f+104f)%104f);line(point(x,103f),point((x+11).coerceAtMost(100f),103f),Sky.copy(alpha=.27f),1f)}
   }
