@@ -1,0 +1,32 @@
+name: Source verification (no APK)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install compile SDK
+        run: sdkmanager "platforms;android-35" "build-tools;34.0.0"
+      - name: Verify source
+        shell: pwsh
+        run: ./scripts/verify-source.ps1
+      - name: Kotlin, unit tests and lint (no APK packaging)
+        run: bash gradlew :app:compileDebugKotlin :app:testDebugUnitTest :app:lintDebug --no-daemon --max-workers=2
+      - name: Test and lint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-reports
+          path: |
+            app/build/reports/tests/
+            app/build/reports/lint-results-debug.*
+          if-no-files-found: ignore

@@ -1,0 +1,23 @@
+Elevare 0.6
+Kotlin 2.0.0: StickGeometry.kt + Model.kt + TrainingProfile.kt + GeometryCheck.kt compiled successfully, Java heap limit 256 MB.
+PASS: 1001 sprint frames, finite bounds, fixed limb lengths, loop seam, invalid phase.
+PASS: 10 existing movement loops, required answers, safety block, 45 second preparation.
+
+PASS: growth: population, finding and limitation
+PASS: No old bitmap coach or photo rendering
+PASS: Age choices 13 through 21
+PASS: Time choices 5, 10, 15, 30
+PASS: Required final answer validation
+PASS: 45 second preparation
+PASS: Three day trial constant
+PASS: No seven day trial UI
+PASS: Offline Turkish TTS selection
+PASS: Headphone disconnect handling
+PASS: Canvas uses phase-based line geometry
+PASS: No current or target height onboarding fields
+PASS: All Android XML files parsed
+PASS: No microphone or network permission
+PASS: 28 JUnit test definitions (not executed)
+SOURCE CHECK ONLY: no Kotlin compilation, JUnit execution, emulator, APK or AAB build.
+
+Android/Compose compilation, Android JUnit, emulator and device audio tests were not run. No APK/AAB created.

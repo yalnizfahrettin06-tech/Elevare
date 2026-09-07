@@ -1,0 +1,235 @@
+2026-09-07 — Elevare 0.5
+PASS: 60 facts
+PASS: 12 sources
+PASS: Unique fact IDs
+PASS: Unique source IDs
+PASS: fact-01: source exists
+PASS: fact-01: age range
+PASS: fact-01: text
+PASS: fact-02: source exists
+PASS: fact-02: age range
+PASS: fact-02: text
+PASS: fact-03: source exists
+PASS: fact-03: age range
+PASS: fact-03: text
+PASS: fact-04: source exists
+PASS: fact-04: age range
+PASS: fact-04: text
+PASS: fact-05: source exists
+PASS: fact-05: age range
+PASS: fact-05: text
+PASS: fact-06: source exists
+PASS: fact-06: age range
+PASS: fact-06: text
+PASS: fact-07: source exists
+PASS: fact-07: age range
+PASS: fact-07: text
+PASS: fact-08: source exists
+PASS: fact-08: age range
+PASS: fact-08: text
+PASS: fact-09: source exists
+PASS: fact-09: age range
+PASS: fact-09: text
+PASS: fact-10: source exists
+PASS: fact-10: age range
+PASS: fact-10: text
+PASS: fact-11: source exists
+PASS: fact-11: age range
+PASS: fact-11: text
+PASS: fact-12: source exists
+PASS: fact-12: age range
+PASS: fact-12: text
+PASS: fact-13: source exists
+PASS: fact-13: age range
+PASS: fact-13: text
+PASS: fact-14: source exists
+PASS: fact-14: age range
+PASS: fact-14: text
+PASS: fact-15: source exists
+PASS: fact-15: age range
+PASS: fact-15: text
+PASS: fact-16: source exists
+PASS: fact-16: age range
+PASS: fact-16: text
+PASS: fact-17: source exists
+PASS: fact-17: age range
+PASS: fact-17: text
+PASS: fact-18: source exists
+PASS: fact-18: age range
+PASS: fact-18: text
+PASS: fact-19: source exists
+PASS: fact-19: age range
+PASS: fact-19: text
+PASS: fact-20: source exists
+PASS: fact-20: age range
+PASS: fact-20: text
+PASS: fact-21: source exists
+PASS: fact-21: age range
+PASS: fact-21: text
+PASS: fact-22: source exists
+PASS: fact-22: age range
+PASS: fact-22: text
+PASS: fact-23: source exists
+PASS: fact-23: age range
+PASS: fact-23: text
+PASS: fact-24: source exists
+PASS: fact-24: age range
+PASS: fact-24: text
+PASS: fact-25: source exists
+PASS: fact-25: age range
+PASS: fact-25: text
+PASS: fact-26: source exists
+PASS: fact-26: age range
+PASS: fact-26: text
+PASS: fact-27: source exists
+PASS: fact-27: age range
+PASS: fact-27: text
+PASS: fact-28: source exists
+PASS: fact-28: age range
+PASS: fact-28: text
+PASS: fact-29: source exists
+PASS: fact-29: age range
+PASS: fact-29: text
+PASS: fact-30: source exists
+PASS: fact-30: age range
+PASS: fact-30: text
+PASS: fact-31: source exists
+PASS: fact-31: age range
+PASS: fact-31: text
+PASS: fact-32: source exists
+PASS: fact-32: age range
+PASS: fact-32: text
+PASS: fact-33: source exists
+PASS: fact-33: age range
+PASS: fact-33: text
+PASS: fact-34: source exists
+PASS: fact-34: age range
+PASS: fact-34: text
+PASS: fact-35: source exists
+PASS: fact-35: age range
+PASS: fact-35: text
+PASS: fact-36: source exists
+PASS: fact-36: age range
+PASS: fact-36: text
+PASS: fact-37: source exists
+PASS: fact-37: age range
+PASS: fact-37: text
+PASS: fact-38: source exists
+PASS: fact-38: age range
+PASS: fact-38: text
+PASS: fact-39: source exists
+PASS: fact-39: age range
+PASS: fact-39: text
+PASS: fact-40: source exists
+PASS: fact-40: age range
+PASS: fact-40: text
+PASS: fact-41: source exists
+PASS: fact-41: age range
+PASS: fact-41: text
+PASS: fact-42: source exists
+PASS: fact-42: age range
+PASS: fact-42: text
+PASS: fact-43: source exists
+PASS: fact-43: age range
+PASS: fact-43: text
+PASS: fact-44: source exists
+PASS: fact-44: age range
+PASS: fact-44: text
+PASS: fact-45: source exists
+PASS: fact-45: age range
+PASS: fact-45: text
+PASS: fact-46: source exists
+PASS: fact-46: age range
+PASS: fact-46: text
+PASS: fact-47: source exists
+PASS: fact-47: age range
+PASS: fact-47: text
+PASS: fact-48: source exists
+PASS: fact-48: age range
+PASS: fact-48: text
+PASS: fact-49: source exists
+PASS: fact-49: age range
+PASS: fact-49: text
+PASS: fact-50: source exists
+PASS: fact-50: age range
+PASS: fact-50: text
+PASS: fact-51: source exists
+PASS: fact-51: age range
+PASS: fact-51: text
+PASS: fact-52: source exists
+PASS: fact-52: age range
+PASS: fact-52: text
+PASS: fact-53: source exists
+PASS: fact-53: age range
+PASS: fact-53: text
+PASS: fact-54: source exists
+PASS: fact-54: age range
+PASS: fact-54: text
+PASS: fact-55: source exists
+PASS: fact-55: age range
+PASS: fact-55: text
+PASS: fact-56: source exists
+PASS: fact-56: age range
+PASS: fact-56: text
+PASS: fact-57: source exists
+PASS: fact-57: age range
+PASS: fact-57: text
+PASS: fact-58: source exists
+PASS: fact-58: age range
+PASS: fact-58: text
+PASS: fact-59: source exists
+PASS: fact-59: age range
+PASS: fact-59: text
+PASS: fact-60: source exists
+PASS: fact-60: age range
+PASS: fact-60: text
+PASS: sprint: primary source URL
+PASS: sprint: population, finding and limitation
+PASS: sprint: PMID matches URL
+PASS: milk: primary source URL
+PASS: milk: population, finding and limitation
+PASS: milk: PMID matches URL
+PASS: breath: primary source URL
+PASS: breath: population, finding and limitation
+PASS: breath: PMID matches URL
+PASS: teen-sleep: primary source URL
+PASS: teen-sleep: population, finding and limitation
+PASS: teen-sleep: PMID matches URL
+PASS: adult-sleep: primary source URL
+PASS: adult-sleep: population, finding and limitation
+PASS: adult-sleep: PMID matches URL
+PASS: who: primary source URL
+PASS: who: population, finding and limitation
+PASS: who: PMID matches URL
+PASS: strength: primary source URL
+PASS: strength: population, finding and limitation
+PASS: strength: PMID matches URL
+PASS: gh-review: primary source URL
+PASS: gh-review: population, finding and limitation
+PASS: gh-review: PMID matches URL
+PASS: gh-meta: primary source URL
+PASS: gh-meta: population, finding and limitation
+PASS: gh-meta: PMID matches URL
+PASS: youth: primary source URL
+PASS: youth: population, finding and limitation
+PASS: youth: PMID matches URL
+PASS: school: primary source URL
+PASS: school: population, finding and limitation
+PASS: school: PMID matches URL
+PASS: growth: primary source URL
+PASS: growth: population, finding and limitation
+PASS: No old bitmap coach or photo rendering
+PASS: Age choices 13 through 21
+PASS: Time choices 5, 10, 15, 30
+PASS: Required final answer validation
+PASS: 45 second preparation
+PASS: Three day trial constant
+PASS: No seven day trial UI
+PASS: Offline Turkish TTS selection
+PASS: Headphone disconnect handling
+PASS: Canvas uses line geometry
+PASS: No current or target height onboarding fields
+PASS: All Android XML files parsed
+PASS: No microphone or network permission
+PASS: 28 JUnit test definitions (not executed)
+SOURCE CHECK ONLY: no Kotlin compilation, JUnit execution, emulator, APK or AAB build.

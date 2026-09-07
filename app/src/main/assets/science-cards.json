@@ -1,0 +1,681 @@
+{
+  "version": 1,
+  "reviewed": "2026-09-07",
+  "description": "60 editoryal kısa not; 12 kaynak. 60 ayrı deney anlamına gelmez.",
+  "sources": [
+    {
+      "id": "sprint",
+      "title": "Sprint sonrası GH yanıtı",
+      "pmid": "12137178",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/12137178/",
+      "studyType": "Deney",
+      "population": "9 erkek; 6 ve 30 saniyelik bisiklet sprintleri",
+      "summary": "30 saniyelik koşulda ortalama en yüksek GH değeri 18,5; 6 saniyelik koşulda 4,0 µg/L olarak bildirildi.",
+      "limit": "Boy ölçülmedi. Bisiklet deneyi evde sprint reçetesi değildir; bireysel farklılık büyüktür.",
+      "checked": "2026-09-07"
+    },
+    {
+      "id": "milk",
+      "title": "Süt ürünleri ve büyüme",
+      "pmid": "30839054",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/30839054/",
+      "studyType": "Meta-analiz",
+      "population": "6–18 yaş; 17 çalışma, 2.844 katılımcı",
+      "summary": "Süt ürünü müdahalelerinde kontrol grubuna göre boy değişiminde anlamlı fark bulunmadı; bazı vücut bileşimi ölçümleri değişti.",
+      "limit": "Sonuçlar herkese aynı etkiyi veya daha fazla süt içme gerekliliğini göstermez.",
+      "checked": "2026-09-07"
+    },
+    {
+      "id": "breath",
+      "title": "Nefes ve duygu durumu",
+      "pmid": "36630953",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/36630953/",
+      "studyType": "Randomize çalışma",
+      "population": "Bir ay boyunca günlük 5 dakikalık uygulamalar",
+      "summary": "Veriş odaklı nefes uygulaması, meditasyon karşılaştırmasına göre duygu durumu ve solunum hızında iyileşme gösterdi.",
+      "limit": "Boy veya GH artışı gösterilmedi. Uygulamanın rahat nefes ritmi deney protokolüyle aynı değildir.",
+      "checked": "2026-09-07"
+    },
+    {
+      "id": "teen-sleep",
+      "title": "Gençlerde uyku süresi",
+      "pmid": "27707447",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/27707447/",
+      "studyType": "Uzman uzlaşısı",
+      "population": "Çocuk ve ergenler; 864 yayının değerlendirilmesi",
+      "summary": "13–18 yaş için düzenli olarak 24 saatte 8–10 saat uyku önerilir; yeterli süre olumlu sağlık sonuçlarıyla ilişkilidir.",
+      "limit": "Genel öneridir; kişisel uyku bozukluğu tanısı veya hormon ölçümü değildir.",
+      "checked": "2026-09-07"
+    },
+    {
+      "id": "adult-sleep",
+      "title": "Yaşa göre uyku gereksinimi",
+      "pmid": "29073398",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/29073398/",
+      "studyType": "Uzman uzlaşısı",
+      "population": "Dokuz yaş grubu; çok disiplinli değerlendirme",
+      "summary": "Genç yetişkinler ve yetişkinler için 7–9 saat, ergenler için 8–10 saat önerilmiştir.",
+      "limit": "Bireysel ihtiyaçlar değişir. Daha uzun uyku otomatik olarak daha fazla GH veya boy demek değildir.",
+      "checked": "2026-09-07"
+    },
+    {
+      "id": "who",
+      "title": "Fiziksel aktivite rehberi",
+      "pmid": "33239350",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/33239350/",
+      "studyType": "Kanıta dayalı rehber",
+      "population": "Çocuklar, gençler ve yetişkinler",
+      "summary": "Gençlerde haftaya yayılan günlük ortalama 60 dakika; yetişkinlerde haftada 150–300 dakika orta şiddetli aerobik aktivite önerilir.",
+      "limit": "Kısa uygulama seansı günlük hareketin tümü değildir. Bu hedefler bireysel tıbbi egzersiz reçetesi değildir.",
+      "checked": "2026-09-07"
+    },
+    {
+      "id": "strength",
+      "title": "Gençlerde kuvvet antrenmanı",
+      "pmid": "20974785",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/20974785/",
+      "studyType": "Meta-analiz",
+      "population": "18 yaş altı sağlıklı çocuklar ve ergenler",
+      "summary": "Kontrollü çalışmalarda direnç antrenmanı kas kuvvetini artırdı. Kazanımlar yaş ve olgunlaşma gibi değişkenlerle ilişkiliydi.",
+      "limit": "Kuvvet kazanımı boy uzaması veya GH artışı olarak yorumlanamaz.",
+      "checked": "2026-09-07"
+    },
+    {
+      "id": "gh-review",
+      "title": "GH ve sportif performans",
+      "pmid": "18347346",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/18347346/",
+      "studyType": "Sistematik derleme",
+      "population": "Sağlıklı, formda kişiler; ortalama yaş 27",
+      "summary": "GH verilen gruplarda yağsız kütle artarken kuvvet veya egzersiz kapasitesinin arttığı gösterilemedi; ödem ve yorgunluk daha sıktı.",
+      "limit": "Dışarıdan GH verilen deneyler doğal egzersiz yanıtından farklıdır. İlaç veya hormon kullanımı önerilmez.",
+      "checked": "2026-09-07"
+    },
+    {
+      "id": "gh-meta",
+      "title": "GH: kütle ile performans farklıdır",
+      "pmid": "28514721",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/28514721/",
+      "studyType": "Meta-analiz",
+      "population": "Sağlıklı genç yetişkinler; 11 çalışma, 254 kişi",
+      "summary": "GH uygulaması kas kuvvetini veya maksimum oksijen tüketimini artırmadı. Vücut bileşimi değişti; anaerobik kapasiteyi tek çalışma ölçtü.",
+      "limit": "Bulgular tedavi denemelerinden gelir; doğal GH değişiminden kişisel performans vaadi çıkarılamaz.",
+      "checked": "2026-09-07"
+    },
+    {
+      "id": "youth",
+      "title": "Gençlerde güvenli kuvvet çalışması",
+      "pmid": "19620931",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/19620931/",
+      "studyType": "Pozisyon bildirisi",
+      "population": "Çocuklar ve ergenler; NSCA uzman değerlendirmesi",
+      "summary": "Yaşa uygun, doğru düzenlenmiş ve gözetimli kuvvet çalışmasının gençlerde yararlı olabileceği belirtilir.",
+      "limit": "Uzman bildirisi bu uygulamanın onayı değildir. Teknik gözetim ve bireysel uygunluk önemlidir.",
+      "checked": "2026-09-07"
+    },
+    {
+      "id": "school",
+      "title": "Okul başlangıcı ve uyku",
+      "pmid": "27040474",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/27040474/",
+      "studyType": "Literatür derlemesi",
+      "population": "Ergen öğrenciler; 38 rapor",
+      "summary": "Daha geç okul başlangıcı çoğu raporda daha uzun hafta içi uykusuyla; bazı olumlu okul sonuçlarıyla ilişkili bulundu.",
+      "limit": "Çalışmaların yapısı değişir; ilişki her öğrenci için aynı sonucu garanti etmez.",
+      "checked": "2026-09-07"
+    },
+    {
+      "id": "growth",
+      "title": "Büyümenin klinik değerlendirilmesi",
+      "pmid": "",
+      "url": "https://www.endocrine.org/patient-engagement/endocrine-library/growth-and-short-stature",
+      "studyType": "Klinik bilgilendirme",
+      "population": "Endocrine Society; büyüme ve kısa boy",
+      "summary": "Değerlendirmede zaman içindeki boy ölçümleri, aile öyküsü ve gerektiğinde testler kullanılır. Kemik yaşı el-bilek röntgeniyle değerlendirilir.",
+      "limit": "Fotoğraf veya uygulama anketi bu değerlendirmeyi yapamaz. Büyüme kaygısı sağlık uzmanıyla ele alınmalıdır.",
+      "checked": "2026-09-07"
+    }
+  ],
+  "facts": [
+    {
+      "id": "fact-01",
+      "sourceId": "sprint",
+      "category": "Egzersiz",
+      "text": "Sprint sonrası GH geçici olarak yükselebilir; bu, boyun uzadığı anlamına gelmez.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-02",
+      "sourceId": "sprint",
+      "category": "Egzersiz",
+      "text": "9 erkekle yapılan deneyde 30 saniyelik bisiklet sprinti, 6 saniyelik koşuldan daha yüksek GH yanıtı verdi.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-03",
+      "sourceId": "sprint",
+      "category": "Egzersiz",
+      "text": "Sprint çalışmasında GH yanıtı kişiler arasında belirgin farklılık gösterdi.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Kanıt notu"
+    },
+    {
+      "id": "fact-04",
+      "sourceId": "sprint",
+      "category": "Egzersiz",
+      "text": "30 saniyelik sprint koşulunda GH yüksekliği yaklaşık 90–120 dakika sürdü; kalıcı artış gösterilmedi.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-05",
+      "sourceId": "sprint",
+      "category": "Egzersiz",
+      "text": "Sprint araştırmasında ölçülen sonuç kandaki GH idi, kazanılan santimetre değil.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Kanıt notu"
+    },
+    {
+      "id": "fact-06",
+      "sourceId": "milk",
+      "category": "Beslenme",
+      "text": "17 çalışmalık analizde süt ürünleri, kontrol grubuna göre boy artışında anlamlı fark yaratmadı.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-07",
+      "sourceId": "milk",
+      "category": "Beslenme",
+      "text": "2.844 genç katılımcının verisi, tek bir besine boy garantisi yüklememek gerektiğini gösteriyor.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-08",
+      "sourceId": "milk",
+      "category": "Beslenme",
+      "text": "Süt ürünleri analizinde yağsız kütle değişimi ile boy değişimi aynı sonuç vermedi.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Kanıt notu"
+    },
+    {
+      "id": "fact-09",
+      "sourceId": "milk",
+      "category": "Beslenme",
+      "text": "Süt araştırmalarının yaş grubu 6–18 idi; sonuçlar her yaştaki kişiye doğrudan aktarılamaz.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-10",
+      "sourceId": "milk",
+      "category": "Beslenme",
+      "text": "Süt ürünleriyle ilgili kontrollü araştırmalar, kısa süreli gözlemlerden daha güçlü karşılaştırma sağlar.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Kanıt notu"
+    },
+    {
+      "id": "fact-11",
+      "sourceId": "breath",
+      "category": "Nefes",
+      "text": "Bir aylık çalışmada veriş odaklı nefes, duygu durumunu iyileştirmede umut verdi.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-12",
+      "sourceId": "breath",
+      "category": "Nefes",
+      "text": "Nefes araştırmasında günlük uygulamalar 5 dakikaydı; gün boyu nefes egzersizi yapılmadı.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-13",
+      "sourceId": "breath",
+      "category": "Nefes",
+      "text": "Veriş odaklı nefes grubunda solunum hızı azaldı; bu bir boy ölçümü değildi.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Kanıt notu"
+    },
+    {
+      "id": "fact-14",
+      "sourceId": "breath",
+      "category": "Nefes",
+      "text": "Nefes çalışması, benzer süreli farkındalık meditasyonuyla karşılaştırıldı.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-15",
+      "sourceId": "breath",
+      "category": "Nefes",
+      "text": "Nefes araştırmasının hedefi duygu durumu ve uyarılmaydı; GH artışı değildi.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Kanıt notu"
+    },
+    {
+      "id": "fact-16",
+      "sourceId": "teen-sleep",
+      "category": "Uyku",
+      "text": "Uyku uzmanları 13–18 yaş için düzenli olarak 8–10 saat uyku öneriyor.",
+      "minAge": 13,
+      "maxAge": 17,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-17",
+      "sourceId": "teen-sleep",
+      "category": "Uyku",
+      "text": "Gençlerde yeterli uyku, daha iyi dikkat ve öğrenmeyle ilişkilidir.",
+      "minAge": 13,
+      "maxAge": 17,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-18",
+      "sourceId": "teen-sleep",
+      "category": "Uyku",
+      "text": "Önerilen sürelerde uyumak, gençlerde daha iyi duygu düzenlemeyle ilişkilidir.",
+      "minAge": 13,
+      "maxAge": 17,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-19",
+      "sourceId": "teen-sleep",
+      "category": "Uyku",
+      "text": "Gençlerde uyku süresi önerisi, yüzlerce yayının incelendiği uzman uzlaşısına dayanır.",
+      "minAge": 13,
+      "maxAge": 17,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-20",
+      "sourceId": "teen-sleep",
+      "category": "Uyku",
+      "text": "Az uyku gençlerde dikkat ve davranış güçlükleriyle ilişkilidir; tek geceden tanı konmaz.",
+      "minAge": 13,
+      "maxAge": 17,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-21",
+      "sourceId": "adult-sleep",
+      "category": "Uyku",
+      "text": "Genç yetişkinler için genel uyku önerisi 7–9 saattir.",
+      "minAge": 18,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-22",
+      "sourceId": "adult-sleep",
+      "category": "Uyku",
+      "text": "Uyku ihtiyacı yaşa göre değişir; ergen ve yetişkin önerileri aynı değildir.",
+      "minAge": 18,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-23",
+      "sourceId": "adult-sleep",
+      "category": "Uyku",
+      "text": "Uyku önerilerinde tek bir sihirli saat değil, bir süre aralığı kullanılır.",
+      "minAge": 18,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-24",
+      "sourceId": "adult-sleep",
+      "category": "Uyku",
+      "text": "Uyku süresi rehberi dokuz farklı yaş grubunu ayrı değerlendirdi.",
+      "minAge": 18,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-25",
+      "sourceId": "adult-sleep",
+      "category": "Uyku",
+      "text": "Daha uzun uyumak her zaman daha uygun uyumak değildir; bireysel ihtiyaçlar değişir.",
+      "minAge": 18,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-26",
+      "sourceId": "who",
+      "category": "Hareket",
+      "text": "Gençlerde günlük hareket hedefi, haftaya yayılan ortalama 60 dakikadır.",
+      "minAge": 13,
+      "maxAge": 17,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-27",
+      "sourceId": "who",
+      "category": "Hareket",
+      "text": "18 yaş üstünde genel hedef, haftada 150–300 dakika orta şiddetli aerobik harekettir.",
+      "minAge": 18,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-28",
+      "sourceId": "who",
+      "category": "Hareket",
+      "text": "Yetişkin rehberinde güçlü ve orta şiddetli aktivitenin eşdeğer birleşimleri de yer alır.",
+      "minAge": 18,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-29",
+      "sourceId": "who",
+      "category": "Hareket",
+      "text": "WHO rehberi yalnız sporculara değil, farklı yaş ve sağlık gruplarına yöneliktir.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-30",
+      "sourceId": "who",
+      "category": "Hareket",
+      "text": "Yetişkinler için haftada 75–150 dakika güçlü aerobik aktivite de rehberdeki seçeneklerdendir.",
+      "minAge": 18,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-31",
+      "sourceId": "strength",
+      "category": "Güç",
+      "text": "Kontrollü araştırmalarda gençler direnç çalışmasıyla kas kuvveti kazanabildi.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-32",
+      "sourceId": "strength",
+      "category": "Güç",
+      "text": "Gençlerde kuvvet kazanımının büyüklüğü yaş ve olgunlaşmayla ilişkili bulundu.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-33",
+      "sourceId": "strength",
+      "category": "Güç",
+      "text": "Kuvvet antrenmanı araştırmaları, yalnız ergenlik sonrasındaki gençleri incelemedi.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Kanıt notu"
+    },
+    {
+      "id": "fact-34",
+      "sourceId": "strength",
+      "category": "Güç",
+      "text": "Gençlerde kuvvet gelişimini değerlendirirken program süresi de önem taşıdı.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-35",
+      "sourceId": "strength",
+      "category": "Güç",
+      "text": "Kuvvet artışını inceleyen bir çalışma, tek başına boy artışını kanıtlamaz.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Kanıt notu"
+    },
+    {
+      "id": "fact-36",
+      "sourceId": "gh-review",
+      "category": "GH bilgisi",
+      "text": "GH ile yağsız kütlenin artması, kuvvetin de arttığı anlamına gelmeyebilir.",
+      "minAge": 18,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-37",
+      "sourceId": "gh-review",
+      "category": "GH bilgisi",
+      "text": "Sağlıklı kişilerde GH kullanımını inceleyen derlemede sportif fayda iddiaları desteklenmedi.",
+      "minAge": 18,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-38",
+      "sourceId": "gh-review",
+      "category": "GH bilgisi",
+      "text": "GH verilen deney gruplarında ödem ve yorgunluk daha sık bildirildi.",
+      "minAge": 18,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-39",
+      "sourceId": "gh-review",
+      "category": "GH bilgisi",
+      "text": "GH derlemesindeki katılımcıların ortalama yaşı 27 idi; sonuçlar kişisel gençlik reçetesi değildir.",
+      "minAge": 18,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-40",
+      "sourceId": "gh-review",
+      "category": "GH bilgisi",
+      "text": "Dışarıdan GH verilmesi, antrenman sonrası doğal hormon yanıtıyla aynı müdahale değildir.",
+      "minAge": 18,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-41",
+      "sourceId": "gh-meta",
+      "category": "GH bilgisi",
+      "text": "11 çalışmalık analizde GH uygulaması kas kuvvetini anlamlı artırmadı.",
+      "minAge": 18,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-42",
+      "sourceId": "gh-meta",
+      "category": "GH bilgisi",
+      "text": "GH meta-analizinde maksimum oksijen tüketiminde anlamlı iyileşme görülmedi.",
+      "minAge": 18,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-43",
+      "sourceId": "gh-meta",
+      "category": "GH bilgisi",
+      "text": "GH ve performans analizinde toplam 254 sağlıklı genç yetişkin incelendi.",
+      "minAge": 18,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-44",
+      "sourceId": "gh-meta",
+      "category": "GH bilgisi",
+      "text": "Anaerobik kapasiteye ilişkin GH bulgusu tek çalışmaya dayanıyordu; kanıt kapsamı sınırlıydı.",
+      "minAge": 18,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-45",
+      "sourceId": "gh-meta",
+      "category": "GH bilgisi",
+      "text": "Vücut bileşimi, kuvvet ve aerobik kapasite ayrı ayrı ölçülür; biri diğerinin yerine geçmez.",
+      "minAge": 18,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-46",
+      "sourceId": "youth",
+      "category": "Antrenman",
+      "text": "Gençlerde kuvvet çalışması için yaşa uygun plan ve teknik gözetim önemlidir.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-47",
+      "sourceId": "youth",
+      "category": "Antrenman",
+      "text": "Yüzme ve bisiklet aerobik aktivitelerdir; onları yapmak boy garantisi sağlamaz.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-48",
+      "sourceId": "youth",
+      "category": "Antrenman",
+      "text": "Gençlerin hareket seçenekleri yalnız aerobik sporlarla sınırlı değildir.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-49",
+      "sourceId": "youth",
+      "category": "Antrenman",
+      "text": "Gençlerde direnç çalışması, uygun düzenlendiğinde kondisyonun bir parçası olabilir.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-50",
+      "sourceId": "youth",
+      "category": "Antrenman",
+      "text": "Genç antrenmanında sağlık, güvenlik ve keyif birlikte gözetilmelidir.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-51",
+      "sourceId": "school",
+      "category": "Uyku",
+      "text": "Daha geç okul başlangıcı, birçok çalışmada daha uzun hafta içi uykusuyla ilişkiliydi.",
+      "minAge": 13,
+      "maxAge": 17,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-52",
+      "sourceId": "school",
+      "category": "Uyku",
+      "text": "Okul saatleri ve uyku derlemesi, ergenlerle ilgili 38 raporu bir araya getirdi.",
+      "minAge": 13,
+      "maxAge": 17,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-53",
+      "sourceId": "school",
+      "category": "Uyku",
+      "text": "Bazı okul çalışmalarında yarım saatlik başlangıç değişikliğiyle bile uyku süresi arttı.",
+      "minAge": 13,
+      "maxAge": 17,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-54",
+      "sourceId": "school",
+      "category": "Uyku",
+      "text": "Daha geç okul başlangıcı, incelenen raporlarda derste uyuklamanın azalmasıyla ilişkiliydi.",
+      "minAge": 13,
+      "maxAge": 17,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-55",
+      "sourceId": "school",
+      "category": "Uyku",
+      "text": "Uyku rutinini yalnız irade değil, okul ve kalkış saatleri de etkileyebilir.",
+      "minAge": 13,
+      "maxAge": 17,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-56",
+      "sourceId": "growth",
+      "category": "Büyüme bilgisi",
+      "text": "Büyüme değerlendirmesinde tek bir fotoğraftan çok zaman içindeki boy ölçümleri kullanılır.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-57",
+      "sourceId": "growth",
+      "category": "Büyüme bilgisi",
+      "text": "Kemik yaşı, dış görünüşe bakılarak değil, gerektiğinde el-bilek röntgeniyle değerlendirilir.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-58",
+      "sourceId": "growth",
+      "category": "Büyüme bilgisi",
+      "text": "Büyüme incelemesinde aile öyküsü de dikkate alınır.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Kanıt notu"
+    },
+    {
+      "id": "fact-59",
+      "sourceId": "growth",
+      "category": "Büyüme bilgisi",
+      "text": "GH ile ilgili klinik değerlendirmede gerektiğinde kan testlerinden yararlanılır.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Araştırma notu"
+    },
+    {
+      "id": "fact-60",
+      "sourceId": "growth",
+      "category": "Büyüme bilgisi",
+      "text": "Boyla ilgili kaygıda uygulama anketi tanının yerine geçmez; sağlık uzmanı değerlendirmesi gerekir.",
+      "minAge": 13,
+      "maxAge": 21,
+      "kind": "Kanıt notu"
+    }
+  ]
+}
