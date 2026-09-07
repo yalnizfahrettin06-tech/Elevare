@@ -36,7 +36,7 @@ import kotlinx.coroutines.delay
  val answers=TrainingAnswers(age,focus,growth,sleep,activity,minutes,safety,environment,days)
  fun finish(trial:Int){
   if (!answers.complete()) return
-  store.update{it.copy(ready=true,onboardingVersion=7,age=age,focus=focus,recentGrowth=growth,sleepHabit=sleep,activityHabit=activity,dailyMinutes=minutes,safety=safety,environment=environment,trainingDays=days,dark=true,trialDays=if(s.ready)s.trialDays else normalizeTrialDays(trial),active=null)}
+  store.update{it.copy(ready=true,start=java.time.LocalDate.now().toString(),pausedDays=0,pausedOn=null,onboardingVersion=7,age=age,focus=focus,recentGrowth=growth,sleepHabit=sleep,activityHabit=activity,dailyMinutes=minutes,safety=safety,environment=environment,trainingDays=days,dark=true,trialDays=if(s.ready)s.trialDays else normalizeTrialDays(trial),active=null)}
  }
  BackHandler(enabled=step>0){step=if(step>=10)9 else step-1}
  if(step==10){PreparationScreen(answers,elapsed,{elapsed=it},{step=9},{step=11});return}
@@ -70,14 +70,34 @@ import kotlinx.coroutines.delay
       Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Tag("Kısa intervaller");Tag("Akıcı hareketler")}
       QuietText("Birkaç soruyla programını birlikte hazırlayalım.")
      }
-     1->{QuestionTitle("Kaç yaşındasın?");QuietText("Başlangıç temposunu yaşına göre düzenleyelim.");ProfileChoices.ages.toList().chunked(3).forEach{row->Row(horizontalArrangement=Arrangement.spacedBy(10.dp)){row.forEach{v->Box(Modifier.weight(1f)){Choice("$v",selected=age==v){age=v}}}}}
+     1 -> {
+      QuestionTitle("Kaç yaşındasın?")
+      QuietText("Başlangıç temposunu yaşına göre düzenleyelim.")
+      ProfileChoices.ages.toList().chunked(3).forEach { row ->
+       Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+        row.forEach { v ->
+         Box(Modifier.weight(1f)) { Choice("$v",selected=age==v) { age=v } }
+        }
+       }
+      }
+     }
      2->{QuestionTitle("Neye odaklanalım?");QuietText("Programın ve günlük bilgiler buna göre şekillenecek.");AnswerChoices(ProfileChoices.focus,focus){focus=it}}
      3->{QuestionTitle("Şu an ne kadar aktifsin?");QuietText("Koşu, spor ve aktif yürüyüşleri düşün.");AnswerChoices(ProfileChoices.activity,activity){activity=it}}
      4->{QuestionTitle("Nerede çalışacaksın?");QuietText("Koşu için güvenli, açık bir alan gerekir.");AnswerChoices(ProfileChoices.environment,environment){environment=it}}
      5->{QuestionTitle("Haftada kaç gün?");QuietText("Aralara toparlanma yerleştireceğiz.");ProfileChoices.days.forEach{v->Choice("$v gün",if(v==2)"Sakin başlangıç" else if(v==3)"Dengeli bir hafta" else "Daha düzenli bir ritim",days==v){days=v}}}
      6->{QuestionTitle("Genelde ne kadar uyuyorsun?");AnswerChoices(ProfileChoices.sleep,sleep){sleep=it};QuietText("Az uyuduğunda programı hafifleteceğiz.")}
      7->{QuestionTitle("Son 6 ayda boyunda artış fark ettin mi?");AnswerChoices(ProfileChoices.growth,growth){growth=it};QuietText("Bu gözlem büyüme bilgilerini seçmemize yardım eder. Boy tahmini yapılmaz.")}
-     8->{QuestionTitle("Bir seansa ne kadar ayırırsın?");ProfileChoices.minutes.chunked(2).forEach{row->Row(horizontalArrangement=Arrangement.spacedBy(10.dp)){row.forEach{v->Box(Modifier.weight(1f)){Choice("$v dk",selected=minutes==v){minutes=v}}}};QuietText("Isınma ve toparlanma bu süreye dahil. 5 dakika seçersen koşuya hazırlıkla başlarız.")}
+     8 -> {
+      QuestionTitle("Bir seansa ne kadar ayırırsın?")
+      ProfileChoices.minutes.chunked(2).forEach { row ->
+       Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+        row.forEach { v ->
+         Box(Modifier.weight(1f)) { Choice("$v dk",selected=minutes==v) { minutes=v } }
+        }
+       }
+      }
+      QuietText("Isınma ve toparlanma bu süreye dahil. 5 dakika seçersen koşuya hazırlıkla başlarız.")
+     }
      9->{QuestionTitle("Başlamaya uygun musun?");QuietText("Hareketi etkileyen ağrı veya uzman kısıtlaması var mı?");AnswerChoices(ProfileChoices.safety,safety){safety=it};if(safety.isNotBlank()&&safety!="clear")QuietText("Programını görebilirsin. Başlamadan önce uygunluğunu netleştirelim.")}
     }
    }

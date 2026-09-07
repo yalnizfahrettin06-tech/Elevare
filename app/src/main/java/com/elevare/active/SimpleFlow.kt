@@ -31,8 +31,7 @@ fun resumePlan(s:UserState):UserState=if(s.pausedOn==null)s else s.copy(pausedDa
  var name by rememberSaveable{mutableStateOf(s.name)}
  var pause by remember{mutableStateOf(false)}
  PageColumn{
-  TopBar("Profil")
-  Text(if(s.name.isBlank())"Antrenman profilin" else s.name,fontSize=24.sp,fontWeight=FontWeight.Bold)
+  TopBar(if(s.name.isBlank())"Profil" else s.name)
   QuietText("${s.sessions.size} seans · Haftada ${s.trainingDays} gün · ${s.dailyMinutes} dk")
   MenuRow("İlerlemem",icon=Icons.Rounded.BarChart,onClick=onProgress)
   MenuRow("Takvim",icon=Icons.Rounded.CalendarMonth,onClick=onPlan)

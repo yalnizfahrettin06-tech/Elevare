@@ -36,7 +36,7 @@ class Store(private val context: Context) {
         put("environment",s.environment);put("trainingDays",s.trainingDays);put("autoAdvance",s.autoAdvance)
         put("favorites",JSONArray(s.favorites.toList()))
         put("done",JSONObject().apply { s.done.forEach { (k,v) -> put(k,JSONArray(v.toList())) } })
-        put("sessions",JSONArray().apply { s.sessions.forEach { l -> put(JSONObject().apply {put("id",l.id);put("title",l.title);put("date",l.date);put("seconds",l.seconds);put("feeling",l.feeling);put("type",l.type)}) } })
+        put("sessions",JSONArray().apply { s.sessions.forEach { l -> put(JSONObject().apply {put("id",l.id);put("title",l.title);put("date",l.date);put("seconds",l.seconds);put("feeling",l.feeling);put("type",l.type);put("workoutId",l.workoutId)}) } })
         put("sleep",JSONArray().apply { s.sleeps.forEach { l -> put(JSONObject().apply {put("date",l.date);put("bed",l.bed);put("wake",l.wake)}) } })
         put("bed",s.bed);put("wake",s.wake);put("reduced",s.reducedMotion);put("dark",s.dark);put("haptic",s.haptic);put("gentle",s.gentle)
         put("pausedOn",s.pausedOn?:JSONObject.NULL);put("pausedDays",s.pausedDays)
@@ -55,7 +55,7 @@ class Store(private val context: Context) {
             ready=j.optBoolean("ready"),name=j.optString("name").take(24),start=j.optString("start").let {java.time.LocalDate.parse(it).toString()},
             favorites=strings(j.optJSONArray("favorites")).filter { id -> runCatching{Content.workout(id)}.isSuccess }.toSet(),
             done=rawDone.keys().asSequence().associateWith {strings(rawDone.optJSONArray(it))},
-            sessions=list(j.optJSONArray("sessions")).map { SessionLog(it.getString("id"),it.getString("title"),it.getString("date"),it.getInt("seconds"),it.optString("feeling"),it.optString("type","workout")) },
+            sessions=list(j.optJSONArray("sessions")).map { SessionLog(it.getString("id"),it.getString("title"),it.getString("date"),it.getInt("seconds"),it.optString("feeling"),it.optString("type","workout"),it.optString("workoutId")) },
             sleeps=list(j.optJSONArray("sleep")).map { SleepLog(it.getString("date"),it.getString("bed"),it.getString("wake")) }.filter { it.minutes>0 },
             bed=j.optString("bed","22:00"),wake=j.optString("wake","07:00"),reducedMotion=j.optBoolean("reduced"),dark=true,haptic=j.optBoolean("haptic",true),gentle=j.optBoolean("gentle"),
             pausedOn=if(j.isNull("pausedOn"))null else j.optString("pausedOn"),pausedDays=j.optLong("pausedDays"),active=active,

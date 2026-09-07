@@ -80,8 +80,10 @@ fun evidenceLabel(id:String)=when(id){"milk"->"Süt ve büyüme";"sprint"->"Spri
 @Composable fun GrowthHome(s:UserState,onWorkout:(String)->Unit,onStart:(String)->Unit,onSleep:()->Unit,onArticle:(String)->Unit,onResumePlan:()->Unit,onReview:()->Unit){
  val day=todayProgram(s)
  val week=weeklyProgram(s.answers(),s.gentle)
- val done=s.sessions.any{it.date==java.time.LocalDate.now().toString()&&it.type=="workout"}&&s.active==null
- val w=s.active?.let{Content.workout(it.workoutId)}?:day.workout
+ val lastCompleted=s.sessions.lastOrNull{it.date==java.time.LocalDate.now().toString()&&it.type=="workout"}
+ val done=lastCompleted!=null&&s.active==null
+ val completedWorkout=if(done)lastCompleted?.workoutId?.let{runCatching{Content.workout(it)}.getOrNull()} else null
+ val w=s.active?.let{Content.workout(it.workoutId)}?:completedWorkout?:day.workout
  val blocked=!trainingAllowed(s)
  PageColumn{
   Row(verticalAlignment=Alignment.CenterVertically){Text("elevare",Modifier.weight(1f),fontSize=25.sp,fontWeight=FontWeight.Black);Tag("WORKOUT",Mint,Sky)}

@@ -137,8 +137,11 @@ import java.time.LocalDate
                 Text(if(left==0)"Bu bölüm tamamlandı" else if(a.running&&move.id=="sprint")"KONTROLLÜ HIZLAN" else if(a.running&&step.rest)"YÜRÜYEREK TOPARLAN" else if(a.running)"KENDİ HIZINDA" else "DURAKLATILDI",color=Ink.copy(.7f),fontWeight=FontWeight.Bold,fontSize=12.sp,modifier=Modifier.padding(bottom=12.dp))
             }}
             Text(if(step.rest)"Hazır olana kadar dinlen." else move.hint,fontSize=16.sp,lineHeight=23.sp)
-            if(store.state.voiceCoach&&audio.status.isNotEmpty())QuietText(audio.status)
-            if(w.hasSprint())QuietText("Tur ${w.steps.take(a.step+1).count{it.moveId==\"sprint\"}.coerceAtLeast(1)} / ${w.intervalCount()} · ${if(step.rest)\"Yürüyüş arası\" else \"Isınma ve toparlanma dahil\"}")
+            if(store.state.voiceCoach&&audio.status.isNotEmpty())TextButton(onClick={soundSettings=true}){Text("Sesli koç ayarlarını kontrol et",fontSize=12.sp)}
+            if(w.hasSprint()){
+                val tour=w.steps.take(a.step+1).count{it.moveId=="sprint"}.coerceAtLeast(1)
+                QuietText("Tur $tour / ${w.intervalCount()} · Isınma ve toparlanma dahil")
+            }
             if(left==0)BigButton("SONRAKİ HAREKET",{val next=w.steps[a.step+1];store.update{it.copy(active=a.copy(step=a.step+1,elapsed=a.elapsed+step.seconds,remaining=next.seconds,deadline=System.currentTimeMillis()+next.seconds*1000L,running=true))}},icon=Icons.Rounded.SkipNext)
             else BigButton(if(a.running)"DURAKLAT" else "DEVAM ET",::toggle,enabled=store.state.pausedOn==null,icon=if(a.running)Icons.Rounded.Pause else Icons.Rounded.PlayArrow)
             TextButton(onClick={store.pauseTimer();stop=true},modifier=Modifier.fillMaxWidth()){Text("Seansı bırak",color=MaterialTheme.colorScheme.onSurfaceVariant)}
@@ -191,7 +194,11 @@ import java.time.LocalDate
   // Rear limbs render first; the front chain stays readable when limbs cross.
   listOf(1 to 5,5 to 6,2 to 9,9 to 10).forEach{(a,b)->line(p(a),p(b),color.copy(alpha=.42f))}
   line(p(10),p(10)+Offset(4f*unit,0f),color.copy(alpha=.42f))
-  line(p(1),p(2),color,3.7f)
+  if(id=="catcow"){
+   val curve=sin(phase*2f*PI.toFloat())*9f
+   val back=Path().apply{moveTo(p(1).x,p(1).y);cubicTo(p(1).x-10*unit,p(1).y+curve*unit,p(2).x+10*unit,p(2).y+curve*unit,p(2).x,p(2).y)}
+   drawPath(back,color,style=Stroke(3.7f*unit,cap=StrokeCap.Round))
+  }else line(p(1),p(2),color,3.7f)
   val head=pose.joints[0];line(point(head.x,head.y+6f),p(1))
   drawCircle(color,6.5f*unit,p(0),style=Stroke(width=2.8f*unit))
   val accent=if(id=="sprint")Coral else Sky

@@ -9,7 +9,7 @@ data class Workout(val id:String,val title:String,val subtitle:String,val catego
  val movementCount get()=steps.count{!it.rest}
  val equipment get()=if(steps.any{it.moveId=="squat"})"Sabit sandalye + duvar" else if(steps.any{it.moveId in listOf("wall","balance","calf")})"Duvar / sabit destek" else "Ekipmansız"
 }
-data class SessionLog(val id:String,val title:String,val date:String,val seconds:Int,val feeling:String,val type:String="workout")
+data class SessionLog(val id:String,val title:String,val date:String,val seconds:Int,val feeling:String,val type:String="workout",val workoutId:String="")
 data class SleepLog(val date:String,val bed:String,val wake:String){val minutes get()=sleepDuration(bed,wake)}
 data class ActiveSession(val workoutId:String,val step:Int=0,val remaining:Int=0,val deadline:Long=0,val running:Boolean=true,val elapsed:Int=0,val startedDate:String=LocalDate.now().toString(),val id:String=java.util.UUID.randomUUID().toString(),val planDay:Int=1)
 data class UserState(val ready:Boolean=false,val name:String="",val start:String=LocalDate.now().toString(),val favorites:Set<String> = emptySet(),val done:Map<String,Set<String>> = emptyMap(),val sessions:List<SessionLog> = emptyList(),val sleeps:List<SleepLog> = emptyList(),val bed:String="22:00",val wake:String="07:00",val reducedMotion:Boolean=false,val dark:Boolean=true,val haptic:Boolean=true,val gentle:Boolean=false,val pausedOn:String?=null,val pausedDays:Long=0,val active:ActiveSession?=null,val onboardingVersion:Int=0,val age:Int=0,val heightCm:Int=0,val targetCm:Int=0,val dailyMinutes:Int=5,val trialDays:Int=0,val reminders:Boolean=false,val focus:String="",val recentGrowth:String="",val sleepHabit:String="",val activityHabit:String="",val safety:String="",val voiceCoach:Boolean=true,val timerSound:String="countdown",val environment:String="",val trainingDays:Int=0,val autoAdvance:Boolean=true)
@@ -51,5 +51,5 @@ fun completeSession(s:UserState,active:ActiveSession,feeling:String):UserState{
  val w=Content.workout(active.workoutId)
  if(active.step!=w.steps.lastIndex||remaining(active)>0)return s
  val next=markDone(s,if(w.id=="breath")"breath" else "move",active.startedDate,active.planDay)
- return next.copy(active=null,gentle=s.gentle||feeling=="Rahatsızlık",safety=if(feeling=="Rahatsızlık")"pain" else s.safety,sessions=next.sessions+SessionLog(active.id,w.title,active.startedDate,w.seconds,feeling,if(w.id=="breath")"breath" else "workout"))
+ return next.copy(active=null,gentle=s.gentle||feeling=="Rahatsızlık",safety=if(feeling=="Rahatsızlık")"pain" else s.safety,sessions=next.sessions+SessionLog(active.id,w.title,active.startedDate,w.seconds,feeling,if(w.id=="breath")"breath" else "workout",w.id))
 }
