@@ -228,6 +228,7 @@ fun slotLabel(slot:String)=when(slot){"morning"->"Sabah";"day"->"Gün içinde";e
   }
   if(life.quietStart==life.quietEnd)QuietText("Aynı başlangıç ve bitiş, ek sessiz aralık oluşturmaz.")
  }
+ QuietText(Reminder.scheduleDescription(context,store.state))
  QuietText("Geciken hatırlatmalar birikmez. Uygulama tıbbi alarm değildir.")
 }
 

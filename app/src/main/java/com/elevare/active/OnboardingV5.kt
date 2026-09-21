@@ -350,7 +350,7 @@ import kotlinx.coroutines.delay
    planReasons(answers).take(3).forEach{reason->Text("• $reason",fontSize=14.sp,color=Sky)}
    week?.firstOrNull{it.training}?.let{Text(workoutDistribution(it.workout),fontSize=13.sp,color=ArcMuted)}
    ExpandSection("Seçimlerim planı nasıl etkiledi?",ArcIcons.Settings){
-    planReasons(answers).forEach{reason->Text(reason,fontSize=14.sp,color=Sky)}
+    QuietText("Alan ve ekipman yanıtları kullanılabilir hareketleri sınırlar. Güncel hazırlık alternatifi farklı hedeflerde benzer olabilir; kişiye özel sağlık hesabı yapılmaz.")
     QuietText(programReason(answers))
    }
    if(blocked)Surface(color=MaterialTheme.colorScheme.errorContainer,shape=RoundedCornerShape(14.dp)){

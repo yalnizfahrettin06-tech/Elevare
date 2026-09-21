@@ -117,7 +117,7 @@ fun nextCycle(s: UserState, today: LocalDate = LocalDate.now()): UserState {
  if (s.active != null || !isCycleComplete(s, today)) return s
  // Historical schedule revisions are unknown; never re-evaluate old achievements
  // against today's preference or manufacture a historical denominator.
- val completed = s.sessions.filter { it.completed && it.cycleId==s.cycleId && it.type=="workout" }.map { it.programDay }.distinct().size
+ val completed = s.sessions.filter { it.completed && it.cycleId==s.cycleId && it.type=="workout" }.map { if(it.programDay in 1..PROGRAM_LENGTH)"day:${it.programDay}" else "date:${it.date}" }.distinct().size
  val openPause=s.pausedOn?.let { runCatching{ChronoUnit.DAYS.between(LocalDate.parse(it),today).coerceAtLeast(0)}.getOrDefault(0) }?:0
  val archive = ProgramCycleArchive(s.cycleId, s.start, today.toString(), s.pausedDays+openPause,
   trainingDays=s.trainingDays,dailyMinutes=s.dailyMinutes,plannedSessions=-1,completedSessions=completed)

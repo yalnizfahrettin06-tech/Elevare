@@ -35,7 +35,7 @@ class Store(private val context:Context) {
     if(previous.reminders!=next.reminders||previous.bed!=next.bed||previous.wake!=next.wake||
      previous.sleepReminderLeadMinutes!=next.sleepReminderLeadMinutes||previous.pausedOn!=next.pausedOn||
      previous.workoutReminders!=next.workoutReminders||previous.workoutReminderTime!=next.workoutReminderTime||
-     previous.sessions.size!=next.sessions.size||previous.life!=next.life)runCatching{Reminder.schedule(context,next)}
+     previous.sessions.size!=next.sessions.size||previous.life!=next.life||previous.safety!=next.safety||previous.dailyReadiness!=next.dailyReadiness||previous.trainingDays!=next.trainingDays||previous.start!=next.start)runCatching{Reminder.schedule(context,next)}
     true
    }
   }catch(_:Exception){error="Değişiklik kaydedilemedi. Önceki kayıtların korunuyor.";false}
@@ -46,7 +46,7 @@ class Store(private val context:Context) {
   return try {
    val next=validatedBackup(raw)
    val previous=prefs.getString("state",null)?:StateCodec.encode(state)
-   if(!prefs.edit().putString("restore_previous",previous).putString("state",StateCodec.encode(next)).commit()){
+   if(!prefs.edit().putString("restore_previous",previous).putString("state",StateCodec.encode(next)).putLong("running_until",0).commit()){
     error="Yedek kaydedilemedi; mevcut veriler korundu.";false
    }else{state=next;recoveryRequired=false;error="";Reminder.cancel(context);true}
   }catch(e:Exception){error=e.message?:"Yedek doğrulanamadı; kayıtların değiştirilmedi.";false}
@@ -55,7 +55,7 @@ class Store(private val context:Context) {
  fun undoRestore():Boolean {
   if(state.active!=null){error="Önce açık seansını bitir veya bırak.";return false}
   val raw=prefs.getString("restore_previous",null)?:return false
-  if(!prefs.edit().putString("state",raw).remove("restore_previous").commit()){error="Geri alınamadı.";return false}
+  if(!prefs.edit().putString("state",raw).putLong("running_until",0).remove("restore_previous").commit()){error="Geri alınamadı.";return false}
   recoveryRequired=false;error="";state=read();Reminder.schedule(context,state);return true
  }
  fun reset():Boolean {

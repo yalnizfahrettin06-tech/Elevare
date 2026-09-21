@@ -94,6 +94,7 @@ import java.time.LocalDate
      QuietText("${s.trainingDays} → ${draft.days} gün / hafta · ${s.dailyMinutes} → ${draft.minutes} dk")
     }else QuietText("Yeni tercihlerin kaydolur. Duraklatılmış veya bitmiş döngünde yeni bir seans başlatılmaz.")
     QuietText("Şu anda hazırlık akışları açık. Koşu, güç ve yoga programları uzman incelemesi bekliyor.")
+    if(changed&&s.active==null)planChangeSummary(s,draft).take(7).forEach{Text(it,fontSize=13.sp)}
    }
   }
   BigButton(if(saved)"Plan tercihin kaydedildi" else "Değişiklikleri incele",{confirm=true},enabled=changed&&draft.complete()&&s.active==null)

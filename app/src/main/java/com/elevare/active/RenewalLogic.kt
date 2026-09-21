@@ -32,6 +32,16 @@ fun workoutDistribution(w:Workout):String {
  return "${minutesText(walk)} yürüyüş · ${minutesText(other)} diğer adımlar"
 }
 
+fun planChangeSummary(s:UserState,a:TrainingAnswers,today:LocalDate=LocalDate.now()):List<String> {
+ val next=applyPlanPreferences(s,a)
+ val first=programElapsedDay(s,today).coerceIn(1,90)
+ return (first..minOf(first+6,90)).mapNotNull{day->
+  val before=programForDay(s,day,today);val after=programForDay(next,day,today)
+  fun label(p:ProgramDay)=if(p.training)"${p.workout.title} · ${minutesText(p.workout.seconds)}" else "Toparlanma"
+  if(label(before)==label(after))null else "Gün $day: ${label(before)} → ${label(after)}"
+ }.ifEmpty{listOf("Önümüzdeki 7 günün akışı aynı kalıyor; yanıt tercihin güncellenir.")}
+}
+
 fun growthLearningNote(s:UserState)=when(s.recentGrowth){
  "yes"->"Ölçüm değişimini anlamak: tek bir değişiklik nedenini veya gelecekteki boyunu göstermez."
  "no"->"Ölçümleri yorumlamak: fark görmemek tek başına gelişimin hakkında bir sonuç vermez."

@@ -27,6 +27,8 @@ object Reminder{
  }
  fun schedule(c:Context,s:UserState){
   cancel(c)
+  val delivery=c.getSharedPreferences("elevare_reminder_delivery_v1",Context.MODE_PRIVATE)
+  delivery.edit().remove("next_epoch").remove("next_priority").apply()
   if(!s.ready || s.onboardingVersion<TRAINING_ONBOARDING_VERSION || !allowed(c) || s.life.notificationsMuted)return
   val nm=c.getSystemService(NotificationManager::class.java)
   ReminderKind.entries.forEach{kind->nm.createNotificationChannel(NotificationChannel(kind.channelId,kind.title,NotificationManager.IMPORTANCE_DEFAULT))}
@@ -36,6 +38,9 @@ object Reminder{
    if(nm.getNotificationChannel(kind.channelId)?.importance==NotificationManager.IMPORTANCE_NONE)return
    val local=runCatching{LocalTime.parse(time)}.getOrNull()?:return
    val next=nextReminderAt(local,now)
+   if(lifeQuiet(s.life,next.toLocalTime()))return
+   if(kind==ReminderKind.WORKOUT&&!shouldRemindWorkout(s.copy(active=null),next))return
+   if(kind==ReminderKind.SLEEP&&!shouldRemindSleep(s,next))return
    // Inexact alarms: no exact-alarm permission and no promise of minute-precise delivery.
    val epoch=next.toInstant().toEpochMilli()
    candidates+=Triple(epoch,if(kind==ReminderKind.SLEEP)0 else 1,{pending(c,kind,epoch)})
@@ -47,14 +52,27 @@ object Reminder{
    nextRoutineAt(p,now)?.let{next->val epoch=next.toInstant().toEpochMilli();candidates+=Triple(epoch,2+LifeCatalog.all.indexOfFirst{it.id==p.id},{lifePending(c,p.id,p.revision,epoch)})}
   }
   // Exactly one future alarm: stable priority resolves collisions before delivery.
-  candidates.minWithOrNull(compareBy<Triple<Long,Int,()->PendingIntent>>{it.first}.thenBy{it.second})?.let{next->
-   runCatching{c.getSystemService(AlarmManager::class.java).setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,next.first,next.third())}
+  earliestReminder(candidates)?.let{next->
+   runCatching{c.getSystemService(AlarmManager::class.java).setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,next.first,next.third())}.onSuccess{
+    delivery.edit().putLong("next_epoch",next.first).putInt("next_priority",next.second).apply()
+   }
   }
  }
  private fun runtimeState(c:Context,s:UserState):UserState {
   val until=c.getSharedPreferences("elevare_active_v2",Context.MODE_PRIVATE).getLong("running_until",0)
   val running=until-System.currentTimeMillis() in 1..3_600_000L
   return s.copy(active=s.active?.copy(running=running))
+ }
+ fun scheduleDescription(c:Context,s:UserState):String {
+  if(s.life.notificationsMuted)return "Tüm hatırlatmalar senin tercihinle sessizde."
+  if(!allowed(c))return "Android bildirim izni kapalı. Rutinlerin uygulamada kullanılabilir."
+  val prefs=c.getSharedPreferences("elevare_reminder_delivery_v1",Context.MODE_PRIVATE)
+  val epoch=prefs.getLong("next_epoch",0)
+  if(epoch<=0)return "Planlı hatırlatma yok. İstediğin rutinde Hatırlat seçeneğini açabilirsin."
+  val time=Instant.ofEpochMilli(epoch).atZone(ZoneId.systemDefault())
+  val kind=when(prefs.getInt("next_priority",2)){0->"Uyku";1->"Antrenman";else->"Rutin"}
+  val count=if(prefs.getString("budget_date","")==LocalDate.now().toString())prefs.getInt("budget_count",0)else 0
+  return "$kind kontrolü: ${time.format(java.time.format.DateTimeFormatter.ofPattern("d MMM HH:mm"))}. Bugün kullanılan bütçe: $count / ${s.life.budget}. Sessizlik, tamamlanmış kayıt, 3 saat aralığı veya sistem gecikmesi nedeniyle gönderilmeyebilir; kesin teslim saati değildir."
  }
  fun show(c:Context)=show(c,ReminderKind.SLEEP,Store(c).state)
  fun show(c:Context,kind:ReminderKind,s:UserState,scheduled:Long=0){

@@ -256,6 +256,7 @@ class WorkoutJourneyTest {
             assertEquals(2,Store(context).state.trainingDays)
             assertEquals(seeded.cycleId,Store(context).state.cycleId)
             device.pressBack();Thread.sleep(350)
+            repeat(3){device.swipe(device.displayWidth/2,device.displayHeight*30/100,device.displayWidth/2,device.displayHeight*80/100,20)}
             click("İlerlemem");click("Tüm zamanlar");shot("25-progress-journal")
             device.pressBack();Thread.sleep(350)
             click("Gizlilik ve yardım");click("Yedekle ve geri yükle")

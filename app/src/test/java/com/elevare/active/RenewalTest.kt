@@ -32,6 +32,19 @@ class RenewalTest {
   val n=validatedBackup(StateCodec.encode(s))
   assertEquals(1000,progressRecords(n,"all","all",today).size)
  }
+ @Test fun archiveNeverRecountsAgainstNewSchedule(){
+  for(days in listOf(2,3,4)){
+   val s=ready().copy(start=today.minusDays(90).toString(),trainingDays=days)
+   val logs=listOf(1,3,5).map{SessionLog("$it","Test",today.minusDays((90-it).toLong()).toString(),300,"",cycleId=s.cycleId,programDay=it)}
+   val archive=nextCycle(s.copy(sessions=logs),today).archivedCycles.single()
+   assertEquals(3,archive.completedSessions);assertEquals(-1,archive.plannedSessions)
+  }
+ }
+ @Test fun sameTimePriorityIsDeterministic(){
+  val jobs=listOf(Triple(1000L,3,"routine"),Triple(1000L,1,"workout"),Triple(1000L,0,"sleep"))
+  assertEquals("sleep",earliestReminder(jobs)!!.third)
+  assertEquals("sleep",earliestReminder(jobs.reversed())!!.third)
+  assertEquals("earlier",earliestReminder(jobs+Triple(999L,7,"earlier"))!!.third)
+ }
  @Test fun notesAndMuteSurviveCodec(){val life=LifeState(notes=mapOf("morning" to "Çantamı hazırla"),notificationsMuted=true);assertEquals(life,StateCodec.decode(StateCodec.encode(ready().copy(life=life))).life)}
 }
-

@@ -7,6 +7,8 @@ enum class ReminderKind(val channelId:String,val requestCode:Int,val title:Strin
  WORKOUT("elevare_workout",41,"Antrenman hatırlatması")
 }
 
+fun <T> earliestReminder(candidates:List<Triple<Long,Int,T>>)=candidates.minWithOrNull(compareBy<Triple<Long,Int,T>>{it.first}.thenBy{it.second})
+
 val SLEEP_REMINDER_LEAD_OPTIONS=listOf(15,30,60)
 fun normalizedSleepReminderLead(minutes:Int)=minutes.takeIf{it in SLEEP_REMINDER_LEAD_OPTIONS}?:30
 fun sleepReminderTime(s:UserState):LocalTime?=runCatching{
