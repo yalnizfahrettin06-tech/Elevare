@@ -36,7 +36,10 @@ import java.util.Locale
  val w=active?.let(::activeWorkout)?:day.workout
  PageColumn {
   TopBar("elevare",action={IconButton(onClick=onProfile){Icon(ArcIcons.Person,"Profil",tint=Sky)}})
-  ArcChapterStrip(journeyDay(s,today),scheduled)
+  Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){
+   Eyebrow("BÖLÜM %02d".format(programPhase(journeyDay(s,today)).code.drop(1).toInt()))
+   Text("${journeyDay(s,today)} / 90 gün",fontSize=12.sp,color=ArcMuted)
+  }
   when {
    active!=null -> {
     WorkoutHero(w,s.reducedMotion,"YARIM KALAN SEANS","Antrenmana devam et",{onStart(w.id)},{onWorkout(w.id)})
@@ -87,11 +90,11 @@ import java.util.Locale
   if(proposal!=null)TextButton(onClick={showProgression=true}){
    Icon(ArcIcons.Progress,null,Modifier.size(18.dp));Spacer(Modifier.width(8.dp));Text("Bir sonraki adımı incele")
   }
+  TodayScience(s,onFact,store=store)
   ExpandSection("Bu bölümün amacı",ArcIcons.Program){
    Text(chapterPurpose(journeyDay(s,today)))
    QuietText("Bu hafta ${weekCompleted(s,today)} seans kaydettin. Bölüm çizgisi takvimini gösterir; kondisyon veya sağlık puanı değildir.")
   }
-  TodayScience(s,onFact,store=store)
   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp)){
    OutlinedButton(onClick=onSleep,modifier=Modifier.weight(1f),contentPadding=PaddingValues(horizontal=10.dp,vertical=12.dp)){
     Icon(ArcIcons.Moon,null,Modifier.size(18.dp));Spacer(Modifier.width(8.dp));Text(s.bed,fontSize=14.sp)
@@ -136,7 +139,7 @@ import java.util.Locale
  }
 }
 
-@Composable fun ProgramBrowser(s:UserState,onMove:(String)->Unit,onWorkout:(String)->Unit,onBack:(()->Unit)?=null) {
+@Composable fun ProgramBrowser(s:UserState,onMove:(String)->Unit,onWorkout:(String)->Unit,onBack:(()->Unit)?=null,onEdit:()->Unit={}) {
  var section by rememberSaveable{mutableStateOf("Bu hafta")}
  var selectedWeek by rememberSaveable{mutableIntStateOf((journeyDay(s)-1)/7)}
  var filter by rememberSaveable{mutableStateOf("Tümü")}
@@ -145,7 +148,7 @@ import java.util.Locale
  val scheduled=isProgramScheduled(s)
  val all=remember(s){ninetyDayProgram(s)}
  PageColumn {
-  TopBar("Programım",onBack)
+  TopBar("Programım",onBack,action={IconButton(onClick=onEdit){Icon(ArcIcons.Settings,"Plan tercihlerini düzenle")}})
   ArcSectionLead("KENDİ HİKÂYEN",if(scheduled)"İlk bölümün hazır." else "Antrenman günlüğün.")
   ArcChapterStrip(day,scheduled)
   if(scheduled)QuietText("Başlangıç · ${LocalDate.parse(s.start).format(DateTimeFormatter.ofPattern("d MMMM EEEE",Locale.forLanguageTag("tr")))}")

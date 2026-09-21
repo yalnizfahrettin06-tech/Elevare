@@ -130,7 +130,7 @@ import kotlinx.coroutines.delay
      0->{
       Eyebrow("KENDİ HİKÂYENİN BAŞLANGICI")
       Text("Hikâyen\nhareketle başlar.",fontSize=37.sp,lineHeight=42.sp,letterSpacing=(-1.2).sp,fontWeight=FontWeight.ExtraBold,modifier=Modifier.semantics{heading()})
-      QuietText("Sana göre antrenman. Her seans yeni bir iz.")
+      QuietText("Hazırlık akışları ve günlük desteklerin. Kendi ritmini kur.")
       ArcStage("sprint",Modifier.fillMaxWidth().height(216.dp),s.reducedMotion)
       FlowRow(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(18.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
        StatPill(ArcIcons.Program,"90 günlük plan")
@@ -195,7 +195,7 @@ import kotlinx.coroutines.delay
      }
      10->{
       QuestionTitle("Son 6 ayda boyunda artış fark ettin mi?")
-      QuietText("Bu soru boy tahmini yapmaz, antrenman yükünü değiştirmez.")
+      QuietText("Yanıtın, Rehber bölümündeki büyüme açıklamasını seçer. Boy tahmini veya yük hesabı yapılmaz.")
       AnswerChoices(ProfileChoices.growth,answers.recentGrowth){answer(answers.copy(recentGrowth=it))}
      }
      11->{
@@ -347,6 +347,8 @@ import kotlinx.coroutines.delay
      }
     }
    }else QuietText("Önizleme oluşturulamadı. Yanıtlarını düzenleyip tekrar dene.")
+   planReasons(answers).take(3).forEach{reason->Text("• $reason",fontSize=14.sp,color=Sky)}
+   week?.firstOrNull{it.training}?.let{Text(workoutDistribution(it.workout),fontSize=13.sp,color=ArcMuted)}
    ExpandSection("Seçimlerim planı nasıl etkiledi?",ArcIcons.Settings){
     planReasons(answers).forEach{reason->Text(reason,fontSize=14.sp,color=Sky)}
     QuietText(programReason(answers))
@@ -359,7 +361,7 @@ import kotlinx.coroutines.delay
   }
   Column(Modifier.fillMaxWidth().background(Paper).padding(horizontal=24.dp,vertical=16.dp),verticalArrangement=Arrangement.spacedBy(8.dp),horizontalAlignment=Alignment.CenterHorizontally){
    if(saveError)SaveError()
-   if(!editing && !blocked)QuietText("Demo sürümü. 3 gün / 72 saat; ücret ve otomatik yenileme yok.")
+   if(!editing && !blocked)QuietText("3 gün: uygun bir seansı dene, planını düzenle, kaydını gör. Ücret ve otomatik yenileme yok.")
    BigButton(
     if(saving)"Kaydediliyor…" else if(editing)"Programımı kaydet" else if(blocked)"Programı görüntüle" else "3 gün ücretsiz dene",
     onClick=if(blocked)onSkip else onFinish,icon=ArcIcons.Arrow,enabled=!saving && week!=null

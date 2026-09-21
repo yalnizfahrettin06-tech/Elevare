@@ -24,7 +24,7 @@ fun isQuietTime(time:LocalTime,bed:String,wake:String):Boolean {
  return if(from==until)false else if(from<until)time>=from && time<until else time>=from || time<until
 }
 fun shouldRemindWorkout(s:UserState,now:ZonedDateTime):Boolean {
- if(!s.ready || s.onboardingVersion<TRAINING_ONBOARDING_VERSION || !s.workoutReminders || s.pausedOn!=null || s.safety!="clear" || s.active!=null)return false
+ if(!s.ready || s.onboardingVersion<TRAINING_ONBOARDING_VERSION || !s.workoutReminders || s.pausedOn!=null || !trainingAllowed(s) || s.active?.running==true || s.life.notificationsMuted)return false
  if(isQuietTime(now.toLocalTime(),s.bed,s.wake))return false
  val date=now.toLocalDate()
  if(isCycleComplete(s,date) || isProgramScheduled(s,date))return false

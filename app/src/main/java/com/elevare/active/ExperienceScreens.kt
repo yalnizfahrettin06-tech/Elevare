@@ -24,7 +24,7 @@ import java.time.LocalDate
  if(confirm)AlertDialog(onDismissRequest={confirm=false},title={Text("Yalnız bu rutine ara verilsin mi?")},text={Text("Geçmişi korunur, yeni hatırlatmaları kapanır. Rutin ayrıntısından yeniden açabilirsin. Antrenman planın değişmez.")},confirmButton={TextButton(onClick={if(store.update{s->s.copy(life=s.life.copy(plans=s.life.plans.map{if(it.id==suggestion.id)it.copy(enabled=false,revision=it.revision+1)else it}))})confirm=false}){Text("Rutine ara ver")}},dismissButton={TextButton(onClick={confirm=false}){Text("Vazgeç")}})
 }
 
-@Composable fun ProExperienceScreen(store:Store,onBack:()->Unit,onRoutine:(String)->Unit){
+@Composable fun ProExperienceScreen(store:Store,onBack:()->Unit,onRoutine:(String)->Unit,onStudio:()->Unit={}){
  val s=store.state
  var minutes by rememberSaveable{mutableIntStateOf(s.dailyMinutes)}
  var confirm by remember{mutableStateOf(false)}
@@ -32,7 +32,9 @@ import java.time.LocalDate
  val preview=remember(s,minutes){nextTrainingPreview(applyTimePreference(s,minutes),LocalDate.now())}
  PageColumn{
   TopBar("Pro önizlemesi",onBack)
-  Text("Planını kendine uyarla.",style=MaterialTheme.typography.headlineMedium)
+  Text("Planın hayatına uysun.",style=MaterialTheme.typography.headlineMedium)
+  BigButton("Haftamı yeniden düzenle",onStudio,icon=ArcIcons.Program)
+  QuietText("Gün, süre ve alan tercihlerini birlikte önizle. Değişiklikler yalnız onayınla uygulanır.")
   QuietText("Ücretsiz önizleme. Ödeme ve otomatik yenileme yok.")
   Surface(color=Mint,shape=RoundedCornerShape(18.dp)){
    Column(Modifier.fillMaxWidth().padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
@@ -55,7 +57,7 @@ import java.time.LocalDate
    }
   }
   BlockTitle("Kendi kayıtlarından")
-  Text("Bu hafta ${weekCompleted(s,LocalDate.now())} tamamlanan seans · Son 7 günde ${lifeWeekCount(s.life,LocalDate.now())} rutin adımı")
+  Text("Son 7 gün · ${lastSevenWorkouts(s)} antrenman · ${lifeWeekCount(s.life,LocalDate.now())} rutin adımı")
   QuietText("Bunlar kayıt özeti; sağlık, hormon veya performans ölçümü değil.")
   WeeklyActionCard(store,onRoutine)
   if(routineSuggestion(s.life,LocalDate.now())==null)QuietText("Rutin kayıtların biriktikçe burada düzenleme önerileri görebilirsin.")

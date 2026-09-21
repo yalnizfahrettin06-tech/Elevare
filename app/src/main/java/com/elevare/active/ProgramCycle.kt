@@ -115,11 +115,12 @@ fun chooseProgramStart(s:UserState,date:LocalDate,today:LocalDate=LocalDate.now(
 /** Explicit user action only; archived sessions retain their identity and cycle metadata. */
 fun nextCycle(s: UserState, today: LocalDate = LocalDate.now()): UserState {
  if (s.active != null || !isCycleComplete(s, today)) return s
- val planned = ninetyDayProgram(s,today).filter { it.training }.map { it.day }.toSet()
- val completed = s.sessions.filter { it.completed && it.cycleId==s.cycleId && it.type=="workout" && it.programDay in planned }.map { it.programDay }.distinct().size
+ // Historical schedule revisions are unknown; never re-evaluate old achievements
+ // against today's preference or manufacture a historical denominator.
+ val completed = s.sessions.filter { it.completed && it.cycleId==s.cycleId && it.type=="workout" }.map { it.programDay }.distinct().size
  val openPause=s.pausedOn?.let { runCatching{ChronoUnit.DAYS.between(LocalDate.parse(it),today).coerceAtLeast(0)}.getOrDefault(0) }?:0
  val archive = ProgramCycleArchive(s.cycleId, s.start, today.toString(), s.pausedDays+openPause,
-  trainingDays=s.trainingDays,dailyMinutes=s.dailyMinutes,plannedSessions=planned.size,completedSessions=completed)
+  trainingDays=s.trainingDays,dailyMinutes=s.dailyMinutes,plannedSessions=-1,completedSessions=completed)
  return s.copy(
   start = today.toString(), cycleId = UUID.randomUUID().toString(),
   pausedOn = null, pausedDays = 0, progressionAccepted = false, progressionConsents = emptyList(),
@@ -486,6 +487,7 @@ private fun workoutContextBlockReason(s:UserState,w:Workout,now:Long):String? {
 
 /** Defense in depth: library/preview/deep-link cannot bypass daily safety and review gates. */
 fun programStartBlockReason(s:UserState,w:Workout,now:Long=System.currentTimeMillis()):String? {
+ if(s.dailyReadiness=="pain")return "Önce hareket uygunluğunu yeniden değerlendir."
  workoutContextBlockReason(s,w,now)?.let{return it}
  val today=java.time.Instant.ofEpochMilli(now).atZone(ZoneId.systemDefault()).toLocalDate()
  if(isProgramScheduled(s,today) && w.steps.any{it.moveId!="breath"})return "İlk antrenmanın ${s.start} tarihinde başlayacak."
@@ -495,6 +497,7 @@ fun programStartBlockReason(s:UserState,w:Workout,now:Long=System.currentTimeMil
 
 /** Revalidate changing safety, but never regenerate an already started immutable recipe. */
 fun sessionResumeBlockReason(s:UserState,a:ActiveSession,now:Long=System.currentTimeMillis()):String? {
+ if(s.dailyReadiness=="pain")return "Önce hareket uygunluğunu yeniden değerlendir."
  if(s.pausedOn!=null)return "Planın dinlenmede. Önce planına devam et."
  val w=runCatching{activeWorkout(a)}.getOrNull()?:return "Yarım kalan seans okunamadı; kayıtların korunuyor."
  return workoutContextBlockReason(s,w,now)

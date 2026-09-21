@@ -6,7 +6,7 @@ import java.time.temporal.ChronoUnit
 data class ScienceSource(val id:String,val title:String,val pmid:String,val url:String,val type:String,val population:String,val summary:String,val limit:String,val checkedAt:String="")
 data class ScienceFact(val id:String,val sourceId:String,val text:String,val category:String,val minAge:Int,val maxAge:Int,val kind:String,val version:Int=1,val status:String="legacy_source_summary",val reviewer:String="",val reviewedAt:String="",val nextReviewAt:String="")
 data class ScienceCatalog(val sources:List<ScienceSource>,val facts:List<ScienceFact>){
- fun forAge(age:Int)=facts.filter{age in it.minAge..it.maxAge && it.status in setOf("legacy_source_summary","publishable","published")}
+ fun forAge(age:Int)=facts.filter{age in it.minAge..it.maxAge && factVisible(it,LocalDate.now())}
  fun source(fact:ScienceFact)=sources.first{it.id==fact.sourceId}
 }
 

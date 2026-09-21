@@ -106,7 +106,10 @@ fun slotLabel(slot:String)=when(slot){"morning"->"Sabah";"day"->"Gün içinde";e
      Text("${lifeWeekCount(life,today)} küçük adım kaydettin.",fontSize=19.sp,fontWeight=FontWeight.Bold)
      QuietText("Kendi kayıtların. Atlanan veya kayıtsız günler başarısızlık değildir.")
      TextButton(onClick={review=true}){Text(if(reflectionWeek(today) in life.reflections)"Haftalık değerlendirmemi düzenle" else "Bu hafta sana nasıl geldi?")}
-     life.reflections[reflectionWeek(today)]?.let{r->QuietText(when(r.next){"time"->"Sonraki adımın: rutin saatini gözden geçir.";"less"->"Sonraki adımın: istersen bir rutini kapat.";else->"Sonraki adımın: aynı ritimde devam."})}
+     life.reflections[reflectionWeek(today)]?.let{r->
+      QuietText(when(r.next){"time"->"Sonraki adımın: rutin saatini gözden geçir.";"less"->"Sonraki adımın: istersen bir rutini kapat.";else->"Sonraki adımın: aynı ritimde devam."})
+      if(r.next!="keep")life.plans.filter{it.enabled}.forEach{p->TextButton(onClick={onRoutine(p.id)}){Text("${LifeCatalog.find(p.id)?.title}: düzenle")}}
+     }
     }
    }
   }
@@ -157,6 +160,11 @@ fun slotLabel(slot:String)=when(slot){"morning"->"Sabah";"day"->"Gün içinde";e
    Text(template.title,style=MaterialTheme.typography.headlineLarge,modifier=Modifier.weight(1f))
   }
   QuietText(template.summary)
+  var note by remember(id,life.notes[id]){mutableStateOf(life.notes[id].orEmpty())}
+  ExpandSection("Kendime küçük bir not",ArcIcons.Book){
+   OutlinedTextField(value=note,onValueChange={note=it.take(120)},label={Text("Örn. ayakkabımı akşamdan hazırlayacağım")},supportingText={Text("${note.length} / 120 · yalnız bu cihazda")},modifier=Modifier.fillMaxWidth())
+   TextButton(enabled=note!=life.notes[id].orEmpty(),onClick={store.update{it.copy(life=it.life.copy(notes=it.life.notes+(id to note.trim())))}}){Text("Notumu kaydet")}
+  }
   Tag(if(routineDue(plan,date))"BUGÜNÜN KÜÇÜK ADIMLARI" else "RUTİN ÖNİZLEMESİ")
   if(!routineDue(plan,date))QuietText("Bugün planlı değil. Günlerini aşağıdan düzenleyebilirsin.")
   template.steps.forEachIndexed{index,step->
@@ -211,6 +219,8 @@ fun slotLabel(slot:String)=when(slot){"morning"->"Sabah";"day"->"Gün içinde";e
  QuietText("Uyku, antrenman ve rutinler ortak bütçeyi paylaşır: bildirimler arasında en az 3 saat. Uykuda ve aktif antrenmanda sessiz.")
  Choice("Günde en fazla 1",selected=life.budget==1){store.update{it.copy(life=it.life.copy(budget=1))}}
  Choice("Günde en fazla 2",selected=life.budget==2){store.update{it.copy(life=it.life.copy(budget=2))}}
+ SettingToggle("Tüm hatırlatmalara ara ver","Plan ve kayıtların çalışmaya devam eder",life.notificationsMuted){v->store.update{it.copy(life=it.life.copy(notificationsMuted=v))}}
+ QuietText("Aynı saate denk gelenlerde sıra: uyku, antrenman, ardından rutin. Bekleyen eski bir seans tüm gününü susturmaz.")
  SettingToggle("Okul / iş sessizliği","Bu aralıkta hatırlatma gönderilmez",life.quietEnabled){v->store.update{it.copy(life=it.life.copy(quietEnabled=v))}}
  if(life.quietEnabled){
   listOf(true,false).forEach{start->val value=if(start)life.quietStart else life.quietEnd

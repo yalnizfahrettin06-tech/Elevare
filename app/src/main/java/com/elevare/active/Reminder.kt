@@ -27,35 +27,47 @@ object Reminder{
  }
  fun schedule(c:Context,s:UserState){
   cancel(c)
-  if(!s.ready || s.onboardingVersion<TRAINING_ONBOARDING_VERSION || !allowed(c))return
+  if(!s.ready || s.onboardingVersion<TRAINING_ONBOARDING_VERSION || !allowed(c) || s.life.notificationsMuted)return
   val nm=c.getSystemService(NotificationManager::class.java)
   ReminderKind.entries.forEach{kind->nm.createNotificationChannel(NotificationChannel(kind.channelId,kind.title,NotificationManager.IMPORTANCE_DEFAULT))}
   val now=ZonedDateTime.now()
+  val candidates=mutableListOf<Triple<Long,Int,()->PendingIntent>>()
   fun scheduleOne(kind:ReminderKind,time:String){
    if(nm.getNotificationChannel(kind.channelId)?.importance==NotificationManager.IMPORTANCE_NONE)return
    val local=runCatching{LocalTime.parse(time)}.getOrNull()?:return
    val next=nextReminderAt(local,now)
    // Inexact alarms: no exact-alarm permission and no promise of minute-precise delivery.
-   runCatching{c.getSystemService(AlarmManager::class.java).setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,next.toInstant().toEpochMilli(),pending(c,kind,next.toInstant().toEpochMilli()))}
+   val epoch=next.toInstant().toEpochMilli()
+   candidates+=Triple(epoch,if(kind==ReminderKind.SLEEP)0 else 1,{pending(c,kind,epoch)})
   }
   if(s.reminders)sleepReminderTime(s)?.let{scheduleOne(ReminderKind.SLEEP,it.toString())}
   if(s.workoutReminders && s.pausedOn==null && s.safety=="clear" && !isCycleComplete(s,now.toLocalDate()))scheduleOne(ReminderKind.WORKOUT,s.workoutReminderTime)
   nm.createNotificationChannel(NotificationChannel("elevare_routines","Seçtiğin rutinler",NotificationManager.IMPORTANCE_DEFAULT))
   if(nm.getNotificationChannel("elevare_routines")?.importance!=NotificationManager.IMPORTANCE_NONE)s.life.plans.forEach{p->
-   nextRoutineAt(p,now)?.let{next->runCatching{c.getSystemService(AlarmManager::class.java).setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,next.toInstant().toEpochMilli(),lifePending(c,p.id,p.revision,next.toInstant().toEpochMilli()))}}
+   nextRoutineAt(p,now)?.let{next->val epoch=next.toInstant().toEpochMilli();candidates+=Triple(epoch,2+LifeCatalog.all.indexOfFirst{it.id==p.id},{lifePending(c,p.id,p.revision,epoch)})}
   }
+  // Exactly one future alarm: stable priority resolves collisions before delivery.
+  candidates.minWithOrNull(compareBy<Triple<Long,Int,()->PendingIntent>>{it.first}.thenBy{it.second})?.let{next->
+   runCatching{c.getSystemService(AlarmManager::class.java).setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,next.first,next.third())}
+  }
+ }
+ private fun runtimeState(c:Context,s:UserState):UserState {
+  val until=c.getSharedPreferences("elevare_active_v2",Context.MODE_PRIVATE).getLong("running_until",0)
+  val running=until-System.currentTimeMillis() in 1..3_600_000L
+  return s.copy(active=s.active?.copy(running=running))
  }
  fun show(c:Context)=show(c,ReminderKind.SLEEP,Store(c).state)
  fun show(c:Context,kind:ReminderKind,s:UserState,scheduled:Long=0){
   if(!allowed(c) || !s.ready || s.onboardingVersion<TRAINING_ONBOARDING_VERSION)return
   val now=ZonedDateTime.now()
-  if(s.active!=null||lifeQuiet(s.life,now.toLocalTime()))return
+  val live=runtimeState(c,s)
+  if(s.life.notificationsMuted||live.active?.running==true||lifeQuiet(s.life,now.toLocalTime()))return
   if(scheduled>0&&(now.toInstant().toEpochMilli()-scheduled !in 0..90*60*1000L||Instant.ofEpochMilli(scheduled).atZone(now.zone).toLocalDate()!=now.toLocalDate()))return
   if(scheduled>0){
    val expected=if(kind==ReminderKind.SLEEP)sleepReminderTime(s) else runCatching{LocalTime.parse(s.workoutReminderTime)}.getOrNull()
    if(expected==null||Instant.ofEpochMilli(scheduled).atZone(now.zone).toLocalTime()!=expected)return
   }
-  if(kind==ReminderKind.WORKOUT && !shouldRemindWorkout(s,now))return
+  if(kind==ReminderKind.WORKOUT && !shouldRemindWorkout(live,now))return
   if(kind==ReminderKind.SLEEP && !shouldRemindSleep(s,now))return
   val nm=c.getSystemService(NotificationManager::class.java)
   nm.createNotificationChannel(NotificationChannel(kind.channelId,kind.title,NotificationManager.IMPORTANCE_DEFAULT))
@@ -83,7 +95,7 @@ object Reminder{
  }
  fun showLife(c:Context,s:UserState,id:String,revision:Long,scheduled:Long){
   val now=ZonedDateTime.now()
-  if(!allowed(c)||!canDeliverLife(s,id,revision,scheduled,now))return
+  if(!allowed(c)||!canDeliverLife(runtimeState(c,s),id,revision,scheduled,now))return
   // The first eligible receiver claims the shared budget. No deferred catch-up.
   val nm=c.getSystemService(NotificationManager::class.java)
   if(nm.getNotificationChannel("elevare_routines")?.importance==NotificationManager.IMPORTANCE_NONE)return

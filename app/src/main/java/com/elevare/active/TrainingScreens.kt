@@ -26,31 +26,6 @@ import kotlinx.coroutines.delay
 import kotlin.math.*
 import java.time.LocalDate
 
-@Composable fun ExploreScreen(s:UserState,onWorkout:(String)->Unit,onMove:(String)->Unit,onFavorite:(String)->Unit){
- var section by rememberSaveable{mutableStateOf("Programım")}
- val week=currentWeekProgram(s)
- PageColumn{
-  TopBar("Antrenman")
-  Text("Haftanın planı.",style=MaterialTheme.typography.headlineLarge)
-  Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){listOf("Programım","Hareketler").forEach{label->FilterChip(selected=section==label,onClick={section=label},label={Text(label)})}}
-  if(section=="Programım"){
-   QuietText("${s.trainingDays} gün · ${s.dailyMinutes} dk · ${if(s.environment=="indoor")"Evde" else "Koşu ve tamamlayıcı hareketler"}")
-   ProgramList(week,journeyDay(s)-1,onWorkout)
-   MenuRow("Sprint nedir?","Isınma, hızlanma ve yürüyüş araları",ArcIcons.Run){onMove("sprint")}
-  }else{
-   Content.moves.forEach{m->
-    Surface(onClick={onMove(m.id)},shape=RoundedCornerShape(16.dp),color=MaterialTheme.colorScheme.surface){
-     Row(Modifier.fillMaxWidth().padding(12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(14.dp)){
-      Pose(m.id,Modifier.size(66.dp),Ink,true)
-      Column(Modifier.weight(1f)){Text(m.title,fontWeight=FontWeight.Bold,fontSize=16.sp);QuietText(m.category)}
-      Icon(ArcIcons.Play,null,tint=Sky,modifier=Modifier.size(24.dp))
-     }
-    }
-   }
-  }
- }
-}
-
 @Composable fun WorkoutDetail(w:Workout,s:UserState,onBack:()->Unit,onFavorite:(String)->Unit,onStart:(Workout)->Unit,onMove:(String)->Unit) {
     PageColumn {
         TopBar("Antrenman",onBack,action={IconButton(onClick={onFavorite(w.id)}){Icon(if(w.id in s.favorites)ArcIcons.Favorite else ArcIcons.Heart,"Favori durumunu değiştir")}})
@@ -63,6 +38,8 @@ import java.time.LocalDate
         }
         QuietText(if(s.age<18)"İlk denemede güvendiğin bir yetişkinden destek al. Ağrı veya baş dönmesinde dur." else "Tekniğinden emin değilsen bir antrenörden destek al. Ağrı veya baş dönmesinde dur.")
         BigButton(if(w.id=="breath")"Nefese başla" else "Antrenmana başla",{onStart(w)},icon=ArcIcons.Play,enabled=s.pausedOn==null)
+        Text(workoutDistribution(w),fontSize=14.sp,color=Sky)
+        QuietText("Ekranı kilitlersen seans ve ses durur. Bu sürüm ekran açık rehber olarak çalışır.")
         ExpandSection("Seans hakkında",ArcIcons.Info){Text(w.subtitle);QuietText(w.equipment);QuietText(w.dayBrief());QuietText("Isınma ve toparlanma toplam süreye dahil.")}
         BlockTitle("Seansın akışı")
         listOf("warmup" to "Isınma","main" to "Ana bölüm","cooldown" to "Soğuma").forEach{(phase,label)->
@@ -93,19 +70,22 @@ import java.time.LocalDate
     var frozen by rememberSaveable{mutableStateOf(false)}
     var slow by rememberSaveable{mutableStateOf(false)}
     var lesson by rememberSaveable(m.id){mutableIntStateOf(0)}
+    var teaching by rememberSaveable(m.id){mutableStateOf(false)}
     PageColumn{
-        TopBar("HAREKET REHBERİ",onBack)
-        Tag(m.category.uppercase())
-        Text(m.title.uppercase(java.util.Locale.forLanguageTag("tr")),style=MaterialTheme.typography.headlineLarge)
+        TopBar("Hareket rehberi",onBack)
+        Text(m.title,style=MaterialTheme.typography.headlineMedium)
+        Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){
+         FilterChip(!teaching,{teaching=false},label={Text("Hareketi izle")})
+         FilterChip(teaching,{teaching=true},label={Text("Tekniği öğren")})
+        }
         Column(horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(8.dp)){
-            ArcStage(m.id,Modifier.fillMaxWidth().height(210.dp),reduced,playing=!frozen,speed=if(slow)2f else 1f,decorated=false)
+            ArcStage(m.id,Modifier.fillMaxWidth().height(if(teaching)140.dp else 190.dp),reduced,playing=!frozen,speed=if(slow)2f else 1f,decorated=false)
             Text("Hareket rehberi · şematik gösterim",color=ArcMuted,fontSize=12.sp)
         }
         if(reduced)QuietText("Azaltılmış hareket açık. Figür sabit gösteriliyor; animasyonu ayarlardan açabilirsin.")
         else Row(horizontalArrangement=Arrangement.spacedBy(10.dp)){FilterChip(selected=frozen,onClick={frozen=!frozen},label={Text(if(frozen)"Oynat" else "Duraklat")});FilterChip(selected=slow,onClick={slow=!slow},label={Text("Yavaş göster")})}
-        QuietText(motionCue(m.id))
-        Text(m.hint,fontWeight=FontWeight.Bold,fontSize=19.sp)
-        if(m.steps.isNotEmpty()){
+        if(!teaching)Text(m.hint,fontWeight=FontWeight.Bold,fontSize=16.sp)
+        if(teaching&&m.steps.isNotEmpty()){
          Text("Teknik adım ${lesson+1} / ${m.steps.size}",color=Coral,fontWeight=FontWeight.Bold)
          Text(m.steps[lesson.coerceIn(m.steps.indices)],style=MaterialTheme.typography.bodyLarge)
          Row(horizontalArrangement=Arrangement.spacedBy(12.dp)){

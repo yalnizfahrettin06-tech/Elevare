@@ -53,7 +53,7 @@ private fun loadScienceCatalog(context:Context):ScienceCatalog = runCatching {
   Column(Modifier.padding(horizontal=14.dp).padding(bottom=14.dp),verticalArrangement=Arrangement.spacedBy(4.dp)){
    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
     Icon(ArcIcons.Book,null,tint=Sky,modifier=Modifier.size(19.dp))
-    Text("SAHA NOTU",Modifier.weight(1f).padding(start=8.dp),fontSize=10.sp,letterSpacing=1.5.sp,color=Sky,fontWeight=FontWeight.Bold)
+    Text("BUGÜNÜN BİLGİSİ",Modifier.weight(1f).padding(start=8.dp),fontSize=10.sp,letterSpacing=1.5.sp,color=Sky,fontWeight=FontWeight.Bold)
     IconButton(onClick={
      val next=selectDailyFact(catalog,state,today,true)
      if(next!=null){
@@ -79,6 +79,7 @@ private fun loadScienceCatalog(context:Context):ScienceCatalog = runCatching {
   item{TopBar("Rehber",action={IconButton(onClick=onProfile){Icon(ArcIcons.Person,"Profil")}})}
   item{ArcSectionLead("MERAKINI BESLE","Hareketin ötesinde.")}
   item{QuietText("${available.size} kısa not · ${available.map{it.sourceId}.distinct().size} kaynak")}
+  if(state.focus=="growth")item{InfoCard(growthLearningNote(state),ArcIcons.Book)}
   item{
    Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)){
     (listOf("Tümü","Kaydedilenler")+available.map{it.category}.distinct()).forEach{c->FilterChip(selected=category==c,onClick={category=c},label={Text(c)})}

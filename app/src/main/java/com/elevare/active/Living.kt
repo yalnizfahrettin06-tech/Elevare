@@ -9,7 +9,8 @@ data class WeekReflection(val load:String,val next:String)
 data class LifeState(
  val welcomed:Boolean=false,val plans:List<LifeRoutinePlan> = emptyList(),val entries:Map<String,String> = emptyMap(),
  val quietEnabled:Boolean=false,val quietStart:String="08:00",val quietEnd:String="16:00",val budget:Int=2,
- val reflections:Map<String,WeekReflection> = emptyMap()
+ val reflections:Map<String,WeekReflection> = emptyMap(),
+ val notificationsMuted:Boolean=false,val notes:Map<String,String> = emptyMap()
 )
 object LifeCatalog {
  val all=listOf(
@@ -73,10 +74,10 @@ fun nextRoutineAt(plan:LifeRoutinePlan,now:ZonedDateTime):ZonedDateTime? {
 fun canDeliverLife(s:UserState,id:String,revision:Long,scheduled:Long,now:ZonedDateTime):Boolean {
  val plan=s.life.plans.find{it.id==id}?:return false
  val age=now.toInstant().toEpochMilli()-scheduled
- return s.ready&&s.onboardingVersion>=TRAINING_ONBOARDING_VERSION&&s.active==null&&plan.remind&&plan.revision==revision&&
+ return s.ready&&s.onboardingVersion>=TRAINING_ONBOARDING_VERSION&&s.active?.running!=true&&plan.remind&&plan.revision==revision&&
   routineDue(plan,now.toLocalDate())&&scheduled>0&&age in 0..90*60*1000L&&
   Instant.ofEpochMilli(scheduled).atZone(now.zone).toLocalDate()==now.toLocalDate()&&
-  !routineRecorded(s.life,id,now.toLocalDate())&&!lifeQuiet(s.life,now.toLocalTime())&&!isQuietTime(now.toLocalTime(),s.bed,s.wake)
+  !s.life.notificationsMuted&&!routineRecorded(s.life,id,now.toLocalDate())&&!lifeQuiet(s.life,now.toLocalTime())&&!isQuietTime(now.toLocalTime(),s.bed,s.wake)
 }
 fun deliveryBudgetAllows(count:Int,lastEpoch:Long,nowEpoch:Long,budget:Int)=
  count<budget.coerceIn(1,2)&&(lastEpoch<=0||nowEpoch-lastEpoch>=3*60*60*1000L)

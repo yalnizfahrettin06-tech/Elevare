@@ -82,7 +82,7 @@ fun OnboardingDraft.restored():OnboardingDraft {
 
 fun UserState.answers()=TrainingAnswers(age,focus,recentGrowth,sleepHabit,activityHabit,dailyMinutes,safety,environment,trainingDays,runningExperience,equipment)
 fun focusLabel(value:String)=ProfileChoices.focus[value]?:"Antrenman ritmim"
-fun trainingAllowed(s:UserState)=s.safety=="clear"
+fun trainingAllowed(s:UserState)=s.safety=="clear" && s.dailyReadiness!="pain"
 fun sleepGuide(age:Int)=if(age<18)"Gençler için genel aralık: 8–10 saat." else "Genç yetişkinler için genel aralık: 7–9 saat."
 
 /** Profile revision changes future choices, never the existing cycle or session history. */

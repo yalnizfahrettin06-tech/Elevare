@@ -79,7 +79,7 @@ import java.time.temporal.ChronoUnit
     PageColumn{
         TopBar("Geceyi planla",onBack)
         Tag("TOPARLANMAYA YER AÇ",Lilac)
-        Text("GÜZEL BİR GÜN,\nİYİ BİR GECE.",style=MaterialTheme.typography.headlineLarge)
+        Text("Geceyi sadeleştir.",style=MaterialTheme.typography.headlineLarge)
         InfoCard(sleepGuide(s.age)+" Bu günlük uykunu ölçmez veya tanı koymaz.",ArcIcons.Moon)
         GrowthProfileHeader(store,notify)
         BlockTitle("Uyku günlüğü")
@@ -93,7 +93,7 @@ import java.time.temporal.ChronoUnit
         if(s.sleeps.isEmpty())Text("Henüz kayıt yok. İlk geceni ekleyebilirsin.",color=MaterialTheme.colorScheme.onSurfaceVariant)
         s.sleeps.asReversed().forEach{log->Surface(color=MaterialTheme.colorScheme.surface,shape=RoundedCornerShape(16.dp)){Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f).clickable{date=log.date;bed=log.bed;wake=log.wake}){Text(log.date,fontWeight=FontWeight.Bold);Text("${log.bed} → ${log.wake} · ${log.minutes/60} sa ${log.minutes%60} dk",fontSize=13.sp)};IconButton(onClick={delete=log}){Icon(ArcIcons.Delete,"${log.date} uyku kaydını sil")}}}}
     }
-    delete?.let{log->AlertDialog(onDismissRequest={delete=null},title={Text("Bu gece silinsin mi?")},text={Text("${log.date} tarihli uyku kaydı kaldırılacak.")},confirmButton={TextButton(onClick={val saved=store.update{it.copy(sleeps=it.sleeps.filterNot{l->l.date==log.date})};if(saved)delete=null;notify(if(saved)"Uyku kaydı silindi." else store.error)}){Text("Sil")}},dismissButton={TextButton(onClick={delete=null}){Text("Vazgeç")}})}
+    delete?.let{log->AlertDialog(onDismissRequest={delete=null},title={Text("Bu gece silinsin mi?")},text={Text("${log.date} tarihli uyku kaydı kaldırılacak.")},confirmButton={TextButton(onClick={val saved=store.update{removeSleep(it,log.date)};if(saved)delete=null;notify(if(saved)"Uyku kaydı silindi." else store.error)}){Text("Sil")}},dismissButton={TextButton(onClick={delete=null}){Text("Vazgeç")}})}
 }
 
 @Composable fun SleepReminderLeadSettings(store:Store,notify:(String)->Unit){
@@ -114,38 +114,12 @@ import java.time.temporal.ChronoUnit
     }
 }
 
-@Composable fun ProfileScreen(store:Store,onSources:()->Unit,onSleep:()->Unit,onExport:()->Unit,onDelete:()->Unit,notify:(String)->Unit){
-    val s=store.state
-    var name by rememberSaveable{mutableStateOf(s.name)}
-    var pause by remember{mutableStateOf(false)}
-    PageColumn{
-        TopBar("Profil")
-        GrowthProfileHeader(store,notify)
-        OutlinedTextField(value=name,onValueChange={name=it.take(18)},label={Text("İsim veya takma ad")},singleLine=true,modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(14.dp),trailingIcon={IconButton(onClick={store.update{it.copy(name=name.trim())};notify("İsmin güncellendi.")}){Icon(ArcIcons.Check,"İsmi kaydet")}})
-        BlockTitle("Görünüm ve tercihler")
-        SettingToggle("Koyu görünüm","Daha loş bir arayüz",s.dark){v->store.update{it.copy(dark=v)}}
-        SettingToggle("Hareketleri azalt","Nefes animasyonunu sabitle",s.reducedMotion){v->store.update{it.copy(reducedMotion=v)}}
-        SettingToggle("Dokunma hissi","Sekmelerde hafif titreşim",s.haptic){v->store.update{it.copy(haptic=v)}}
-        SettingToggle("Daha hafif öneri","Ana ekranda mobilite akışı",s.gentle){v->store.update{it.copy(gentle=v)}}
-        BlockTitle("RUTİNİN")
-        InfoCard("Uyku planın · ${s.bed} → ${s.wake}",ArcIcons.Moon,onSleep)
-        BigButton(if(s.pausedOn==null)"PLANA ARA VER" else "PLANA DEVAM ET",{pause=true},icon=if(s.pausedOn==null)ArcIcons.Pause else ArcIcons.Play)
-        Text("Ara verdiğinde 90 günlük takvim durur. Geçmiş kayıtların korunur; geri döndüğünde telafi borcun olmaz.",fontSize=12.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
-        BlockTitle("GİZLİLİK VE BİLGİ")
-        InfoCard("Bilimsel kaynaklar ve uygulama sınırları",ArcIcons.Book,onSources)
-        InfoCard("Kayıtlarımı dosya olarak kaydet",ArcIcons.Download,onExport)
-        InfoCard("Hesap, reklam ve takip yok. Kayıtların yalnızca cihazında. Uygulamayı kaldırmak kayıtlarını siler.",ArcIcons.Lock)
-        OutlinedButton(onClick=onDelete,modifier=Modifier.fillMaxWidth()){Text("Bu cihazdaki tüm kayıtları sil",color=MaterialTheme.colorScheme.error)}
-        Text("ELEVARE / 0.3.0\nTest imzalı prototip · Yerel uyku hatırlatıcısı\nFirebase, ödeme ve sensör ölçümü bağlı değil.",fontSize=12.sp,lineHeight=19.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-    if(pause)AlertDialog(onDismissRequest={pause=false},title={Text(if(s.pausedOn==null)"Dinlenme zamanı mı?" else "Devam edelim mi?")},text={Text(if(s.pausedOn==null)"Takvim duracak; açık seansın duraklatılacak. İstediğin zaman devam edebilirsin." else "Takvimin kaldığı yerden devam edecek.")},confirmButton={TextButton(onClick={store.pauseTimer();store.update{if(it.pausedOn==null)it.copy(pausedOn=LocalDate.now().toString())else it.copy(pausedDays=it.pausedDays+ChronoUnit.DAYS.between(LocalDate.parse(it.pausedOn),LocalDate.now()).coerceAtLeast(0),pausedOn=null)};pause=false}){Text(if(s.pausedOn==null)"Ara ver" else "Devam et")}},dismissButton={TextButton(onClick={pause=false}){Text("Vazgeç")}})
-}
-@Composable fun SettingToggle(title:String,description:String,checked:Boolean,change:(Boolean)->Unit){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(16.dp)){Column(Modifier.weight(1f)){Text(title,fontWeight=FontWeight.Medium,fontSize=15.sp);if(description.isNotBlank())Text(description,fontSize=12.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)};Switch(checked=checked,onCheckedChange=change)}}
+@Composable fun SettingToggle(title:String,description:String,checked:Boolean,change:(Boolean)->Unit){Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(16.dp)){Column(Modifier.weight(1f)){Text(title,fontWeight=FontWeight.Medium,fontSize=15.sp);if(description.isNotBlank())Text(description,fontSize=12.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)};Switch(checked=checked,onCheckedChange=change,modifier=Modifier.semantics{contentDescription=title})}}
 
 @Composable fun SourcesScreen(onBack:()->Unit,onLink:(String)->Unit){PageColumn{
     InfoCard("Elevare tıbbi cihaz değildir. Hastalık tanısı, tedavisi, önlenmesi veya hormon ölçümü yapmaz. Sağlık kararları için bir sağlık uzmanına danış.")
-    TopBar("BİLGİ VE KAYNAKLAR",onBack)
-    Text("HAREKET İÇİN.\nMUCİZE VAADİ DEĞİL.",style=MaterialTheme.typography.headlineLarge)
+    TopBar("Bilgi ve kaynaklar",onBack)
+    Text("Bilginin kaynağı açık.",style=MaterialTheme.typography.headlineLarge)
     Text("Elevare, 13–21 yaş için genel hareket ve rutin farkındalığı prototipidir. Boy uzaması, büyüme hormonu artışı, kilo değişimi veya tıbbi sonuç vaat etmez. Kişisel egzersiz reçetesi değildir.")
     InfoCard("Dünya Sağlık Örgütü · 5–17 yaş için hafta boyunca günde ortalama en az 60 dakika orta-yüksek şiddette, çoğunlukla aerobik hareket önerir. Bu kısa seanslar günlük hareketin tamamı değildir.",Icons.Rounded.Public){onLink("https://www.who.int/publications/i/item/9789240014886")}
     InfoCard("CDC · Oyun, yürüyüş ve spor dahil yaşa uygun, çeşitli ve keyifli hareket seçenekleri.",Icons.Rounded.SportsSoccer){onLink("https://www.cdc.gov/physical-activity-basics/adding-children-adolescents/what-counts.html")}

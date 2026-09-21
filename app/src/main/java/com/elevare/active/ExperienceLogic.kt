@@ -17,8 +17,7 @@ fun routineSuggestion(life:LifeState,today:LocalDate):RoutineSuggestion? = life.
 /** Explicit confirmation only; no load increase, reset, or active snapshot mutation. */
 fun applyTimePreference(s:UserState,minutes:Int):UserState {
  if(!s.ready||minutes !in ProfileChoices.minutes||minutes==s.dailyMinutes||s.active!=null||!s.answers().complete())return s
- return completeOnboarding(s,s.answers().copy(minutes=minutes),false).copy(
-  progressionAccepted=false,progressionConsents=emptyList(),dailyCheckDate="",dailyReadiness="",dailyEquipmentConfirmed=false)
+ return applyPlanPreferences(s,s.answers().copy(minutes=minutes))
 }
 fun weekCompleted(s:UserState,today:LocalDate)=s.sessions.count{
  it.completed&&it.type=="workout"&&it.date>=today.with(java.time.DayOfWeek.MONDAY).toString()&&it.date<=today.toString()

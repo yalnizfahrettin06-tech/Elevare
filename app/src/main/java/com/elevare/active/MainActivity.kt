@@ -65,10 +65,17 @@ private val destinations=listOf(Destination("Bugün",ArcIcons.Home),Destination(
     var page by rememberSaveable { mutableStateOf("") }
     var backStack by rememberSaveable { mutableStateOf(listOf<String>()) }
     val screenStates=rememberSaveableStateHolder()
+    var savedScreenKeys by rememberSaveable { mutableStateOf(listOf<String>()) }
     var notice by remember { mutableStateOf("") }
     var showDelete by remember { mutableStateOf(false) }
     var prepareWorkout by rememberSaveable { mutableStateOf("") }
     var dateTick by remember { mutableStateOf(LocalDate.now()) }
+    val screenKey="${s.cycleId}:$page:$tab:${if(page=="session")"session:${s.active?.id}" else dateTick}"
+    LaunchedEffect(screenKey){
+        val keys=(savedScreenKeys-screenKey)+screenKey
+        keys.dropLast(24).forEach{screenStates.removeState(it)}
+        savedScreenKeys=keys.takeLast(24)
+    }
     val context=LocalContext.current
     val haptic=LocalHapticFeedback.current
     val unavailablePage=remember(page){when {
@@ -113,7 +120,7 @@ private val destinations=listOf(Destination("Bugün",ArcIcons.Home),Destination(
         } },
         snackbarHost={if(notice.isNotBlank()) Snackbar(Modifier.padding(16.dp)){Text(notice)}}
     ){padding->
-        Box(Modifier.fillMaxSize().padding(padding)){screenStates.SaveableStateProvider("${s.cycleId}:$page:$tab:${if(page=="session")"session:${s.active?.id}" else dateTick}"){
+        Box(Modifier.fillMaxSize().padding(padding)){screenStates.SaveableStateProvider(screenKey){
             if(store.recoveryRequired) PageColumn{
                 TopBar("Kayıtlarını koruyoruz");InfoCard(store.error)
                 BigButton("Kurtarma dosyasını kaydet",{export.launch("elevare-kurtarma.json")},icon=ArcIcons.Download)
@@ -126,7 +133,7 @@ private val destinations=listOf(Destination("Bugün",ArcIcons.Home),Destination(
                 QuietText("Bu eski bağlantı artık kullanılamıyor. Kayıtların korunuyor.")
                 BigButton("Programıma dön",{go("plan")},icon=ArcIcons.Program)
             }
-            else if(page=="session"&&!trainingAllowed(s)) SourcesScreen(onBack=::back,onLink={message("Rehber sekmesinden kaynakları okuyabilirsin.")})
+            else if(page=="session"&&!trainingAllowed(s)) SafetyReview(store,onBack=::back,onProfile={go("studio")})
             else if(page=="session") SessionScreen(store,onClose={store.pauseTimer();back()},onSaved={home();message("Seansın kaydedildi.")})
             else if(page.startsWith("workout:")) WorkoutDetail(Content.workout(page.substringAfter(":")),s,onBack=::back,onFavorite={id->store.update{it.copy(favorites=if(id in it.favorites)it.favorites-id else it.favorites+id)}},onStart={w->
                 if(!trainingAllowed(s)){message("Önce Profil bölümünden antrenman uygunluğunu gözden geçir.")}
@@ -137,10 +144,13 @@ private val destinations=listOf(Destination("Bugün",ArcIcons.Home),Destination(
             else if(page.startsWith("move:")) MoveDetail(if(page.substringAfter(":")=="sprint")SprintGuide else Content.move(page.substringAfter(":")),s.reducedMotion,onBack=::back)
             else if(page=="sleep") SleepScreen(store,onBack=::back,notify=::message)
             else if(page.startsWith("routine:")) RoutineDetailScreen(store,page.substringAfter(":"),onBack=::back)
-            else if(page=="profile") Column{TopBar("Ayarlar",::back);Box(Modifier.weight(1f)){CompactProfileScreen(store,onSources={go("sources")},onSleep={go("sleep")},onExport={export.launch("elevare-kayitlarim.json")},onDelete={showDelete=true},onPlan={go("plan")},onProgress={go("progress")},onTrial={go("trial")},notify=::message)}}
-            else if(page=="plan") ProgramBrowser(s,onMove={go("move:"+it)},onWorkout={go("workout:"+it)},onBack=::back)
-            else if(page=="progress") Column{TopBar("İlerleme",::back);Box(Modifier.weight(1f)){ProgressScreen(s,onSleep={go("sleep")})}}
-            else if(page=="trial") ProExperienceScreen(store,onBack=::back,onRoutine={go("routine:"+it)})
+            else if(page=="profile") Column{TopBar("Ayarlar",::back);Box(Modifier.weight(1f)){CompactProfileScreen(store,onSources={go("sources")},onSleep={go("sleep")},onExport={go("backup")},onDelete={showDelete=true},onPlan={go("plan")},onProgress={go("progress")},onTrial={go("trial")},onEdit={go("studio")},notify=::message)}}
+            else if(page=="plan") ProgramBrowser(s,onMove={go("move:"+it)},onWorkout={go("workout:"+it)},onBack=::back,onEdit={go("studio")})
+            else if(page=="progress") ProgressJournal(s,onBack=::back,onSleep={go("sleep")})
+            else if(page=="studio") PlanStudio(store,onBack=::back)
+            else if(page=="safety") SafetyReview(store,onBack=::back,onProfile={go("studio")})
+            else if(page=="backup") BackupScreen(store,onBack=::back,onExport={export.launch("elevare-yedek.json")})
+            else if(page=="trial") ProExperienceScreen(store,onBack=::back,onRoutine={go("routine:"+it)},onStudio={go("studio")})
             else if(page.startsWith("fact:")) FactDetail(page.substringAfter(":"),s.age,onBack=::back,store=store)
             else if(page.startsWith("article:")) EvidenceDetail(Research.article(page.substringAfter(":")),onBack=::back)
             else if(page=="sources") SourcesScreen(onBack=::back,onLink={url->try{context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(url)))}catch(_:Exception){message("Bağlantıyı açacak bir tarayıcı bulunamadı.")}})
@@ -148,10 +158,9 @@ private val destinations=listOf(Destination("Bugün",ArcIcons.Home),Destination(
                 Column(Modifier.fillMaxSize()){
                     if(s.active!=null&&tab!=0) Row(Modifier.fillMaxWidth().background(Mint).clickable{go("session")}.padding(horizontal=20.dp,vertical=14.dp),verticalAlignment=Alignment.CenterVertically){Icon(ArcIcons.Play,null,tint=Coral);Text("Seansa devam et",Modifier.weight(1f).padding(start=10.dp),color=Ink,fontWeight=FontWeight.Bold,fontSize=13.sp);Icon(ArcIcons.Arrow,null,tint=Coral)}
                     when(tab){
-                        0->WorkoutHome(store,onWorkout={go("workout:"+it)},onMove={go("move:"+it)},onStart={if(s.active!=null)go("session")else prepareWorkout=it},onSleep={go("sleep")},onFact={go("fact:"+it)},onReview={store.pauseTimer();store.update{it.copy(onboardingVersion=0)}},onProgress={go("progress")},onProgram={go("plan")},onProfile={go("profile")},onRoutine={go("routine:"+it)},onRoutines={tab=1})
+                        0->WorkoutHome(store,onWorkout={go("workout:"+it)},onMove={go("move:"+it)},onStart={if(s.active!=null)go("session")else prepareWorkout=it},onSleep={go("sleep")},onFact={go("fact:"+it)},onReview={go("safety")},onProgress={go("progress")},onProgram={go("plan")},onProfile={go("profile")},onRoutine={go("routine:"+it)},onRoutines={tab=1})
                         1->RoutinesScreen(store,onRoutine={go("routine:"+it)},onProgram={go("plan")},onSleep={go("sleep")},onProgress={go("progress")},onProfile={go("profile")})
                         2->FactLibrary(s,onFact={go("fact:"+it)},store=store,onProfile={go("profile")})
-                        3->CompactProfileScreen(store,onSources={go("sources")},onSleep={go("sleep")},onExport={export.launch("elevare-kayitlarim.json")},onDelete={showDelete=true},onPlan={go("plan")},onProgress={go("progress")},onTrial={go("trial")},notify=::message)
                     }
                 }
             }

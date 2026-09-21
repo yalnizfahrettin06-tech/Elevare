@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.*
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
-@Composable fun CompactProfileScreen(store:Store,onSources:()->Unit,onSleep:()->Unit,onExport:()->Unit,onDelete:()->Unit,onPlan:()->Unit,onProgress:()->Unit,onTrial:()->Unit,notify:(String)->Unit){
+@Composable fun CompactProfileScreen(store:Store,onSources:()->Unit,onSleep:()->Unit,onExport:()->Unit,onDelete:()->Unit,onPlan:()->Unit,onProgress:()->Unit,onTrial:()->Unit,onEdit:()->Unit={},notify:(String)->Unit){
  val s=store.state
  var name by rememberSaveable{mutableStateOf(s.name)}
  var pause by remember{mutableStateOf(false)}
@@ -28,7 +28,7 @@ import java.time.temporal.ChronoUnit
    QuietText("${s.age} yaş · Günlük süre tercihi ${s.dailyMinutes} dk")
    QuietText("Öncelik: ${focusLabel(s.focus)}")
    QuietText("Yanıtlar hormon düzeyini veya büyüme potansiyelini ölçmez.")
-   TextButton(onClick={store.pauseTimer();store.update{it.copy(onboardingVersion=0)}}){Text("Yanıtlarımı düzenle")}
+   TextButton(onClick=onEdit){Text("Yanıtlarımı düzenle")}
    QuietText("Güncelleme sonraki seansları değiştirir. Geçmişin korunur.")
   }
   ExpandSection("Uyku ve bildirimler",ArcIcons.Moon){
@@ -38,6 +38,7 @@ import java.time.temporal.ChronoUnit
    LifeNotificationSettings(store)
   }
   ExpandSection("Sesli koç",ArcIcons.Sound){
+   VoiceCheck(store)
    SettingToggle("Sesli anlatım","Cihazdaki çevrimdışı Türkçe ses",s.voiceCoach){v->store.update{it.copy(voiceCoach=v)}}
    listOf("off" to "Süre sesi kapalı","countdown" to "Son 3 saniye","every_second" to "Her saniye").forEach{(value,label)->Choice(label,selected=s.timerSound==value){store.update{it.copy(timerSound=value)}}}
   }
@@ -46,12 +47,12 @@ import java.time.temporal.ChronoUnit
    SettingToggle("Azaltılmış hareket","Figür ve nefes animasyonunu durdur",s.reducedMotion){v->store.update{it.copy(reducedMotion=v)}}
    SettingToggle("Titreşim","",s.haptic){v->store.update{it.copy(haptic=v)}}
    SettingToggle("Hafif antrenman","",s.gentle){v->store.update{it.copy(gentle=v)}}
-   OutlinedButton(onClick={pause=true},modifier=Modifier.fillMaxWidth()){Text(if(s.pausedOn==null)"Plana ara ver" else "Plana devam et")}
+   OutlinedButton(onClick={pause=true},modifier=Modifier.fillMaxWidth()){Text(if(s.pausedOn==null)"Antrenman takvimine ara ver" else "Antrenman takvimine devam et")}
   }
   ExpandSection("Gizlilik ve yardım",ArcIcons.Lock){
    QuietText("Kayıtlar yalnızca cihazında. Uygulamayı kaldırmak kayıtlarını siler.")
    MenuRow("Bilgi ve kaynaklar",icon=ArcIcons.Book,onClick=onSources)
-   MenuRow("Kayıtları dışa aktar",icon=ArcIcons.Download,onClick=onExport)
+   MenuRow("Yedekle ve geri yükle",icon=ArcIcons.Download,onClick=onExport)
    if(s.onboardingDraft!=null)TextButton(onClick={if(store.update{it.copy(onboardingDraft=null)})notify("Başlangıç taslağı silindi.")else notify(store.error)}){Text("Kaydedilen form taslağını sil")}
    TextButton(onClick=onDelete){Text("Tüm kayıtları sil",color=MaterialTheme.colorScheme.error)}
   }

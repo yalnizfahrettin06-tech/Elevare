@@ -21,13 +21,13 @@ import java.time.LocalDate
  if(w==null){LaunchedEffect(Unit){onDismiss()};return}
  val today=LocalDate.now().toString()
  fun adaptedState(s:UserState)=s.copy(dailyCheckDate=today,dailyReadiness=readiness,dailyEnvironment=if(indoors)"indoor" else s.environment,
-   externalSportDate=if(sports)today else s.externalSportDate,dailyEquipmentConfirmed=supports,safety=if(readiness=="pain")"pain" else s.safety)
+   externalSportDate=if(sports)today else s.externalSportDate,dailyEquipmentConfirmed=supports)
  val selectedDay=todayProgram(adaptedState(store.state))
  val chosen=if(requestedId=="breath")w else selectedDay.workout
  AlertDialog(onDismissRequest=onDismiss,title={Text("Bugün nasılsın?")},text={
   Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(10.dp)){
    listOf("ready" to "Hazırım","tired" to "Yorgunum","pain" to "Ağrı / rahatsızlık var").forEach{(id,label)->Choice(label,selected=readiness==id){readiness=id}}
-   if(readiness=="pain")QuietText("Şimdilik dur. Başlamadan önce uygunluğunu netleştir; gerekirse bir sağlık uzmanından destek al.")
+   if(readiness=="pain")QuietText("Seans başlatılmayacak. Yeniden başlamadan önce kısa uygunluk kontrolünü tamamlaman gerekecek; tarih değişmesi bu kontrolü kaldırmaz. Gerekirse bir sağlık uzmanından destek al.")
    else {
     QuietText("${chosen.title} · ${minutesText(chosen.seconds)}")
     QuietText(chosen.equipment)
