@@ -66,8 +66,9 @@ class WorkoutJourneyTest {
         ActivityScenario.launch(MainActivity::class.java).use{scenario->
             assertTrue(device.wait(Until.hasObject(By.text("Hikâyeme başla")),10000))
             shot("01-welcome");click("Hikâyeme başla")
-            assertFalse(node("Devam et").isEnabled)
-            shot("02-age");click("18");click("Devam et")
+            click("Devam et")
+            assertEquals(1,Store(context).state.onboardingDraft!!.step)
+            shot("02-age");click("18 yaş");click("Devam et")
             // The draft survives activity recreation without skipping required responses.
             scenario.recreate()
             assertTrue(device.wait(Until.hasObject(By.text("Neye odaklanalım?")),10000))
@@ -171,7 +172,8 @@ class WorkoutJourneyTest {
         ActivityScenario.launch(MainActivity::class.java).use{
             assertTrue(device.wait(Until.hasObject(By.text("Antrenmana devam et")),10000))
             click("Antrenmana devam et")
-            assertTrue(device.wait(Until.hasObject(By.text("Kaydet ve bitir")),6000))
+            assertNotNull(node("Kaydet ve bitir"))
+            device.swipe(device.displayWidth/2,device.displayHeight*35/100,device.displayWidth/2,device.displayHeight*75/100,20)
             click("Uygundu");shot("16-complete");click("Kaydet ve bitir")
             assertEquals(1,Store(context).state.sessions.count{it.id==active.id&&it.completed})
             assertNull(Store(context).state.active)
@@ -183,7 +185,7 @@ class WorkoutJourneyTest {
         device.executeShellCommand("settings put system font_scale 2.0")
         ActivityScenario.launch(MainActivity::class.java).use{
             assertTrue(device.wait(Until.hasObject(By.text("Hikâyeme başla")),10000))
-            click("Hikâyeme başla");click("21");shot("17-font-200")
+            click("Hikâyeme başla");click("21 yaş");shot("17-font-200")
             click("Devam et")
             assertTrue(device.wait(Until.hasObject(By.text("Neye odaklanalım?")),8000))
         }
