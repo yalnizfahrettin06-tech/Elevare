@@ -5,6 +5,7 @@ import org.junit.Test
 import java.time.*
 
 class LivingTest {
+ @Test fun malformedLifeDataIsNotSilentlyDropped(){assertTrue(runCatching{LifeCodec.decode(org.json.JSONObject("""{"plans":"broken"}"""))}.isFailure)}
  private val day=LocalDate.of(2026,9,21)
  private val now=day.atTime(16,30).atZone(ZoneId.of("Europe/Istanbul"))
  private fun life()=addRoutine(LifeState(),"morning")

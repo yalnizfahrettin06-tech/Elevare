@@ -12,6 +12,9 @@ object LifeCodec {
  }
  fun decode(j:JSONObject?):LifeState {
   if(j==null)return LifeState()
+  require(!j.has("plans")||j.optJSONArray("plans")!=null)
+  require(!j.has("entries")||j.optJSONObject("entries")!=null)
+  require(!j.has("reflections")||j.optJSONObject("reflections")!=null)
   val a=j.optJSONArray("plans")?:JSONArray()
   val plans=(0 until a.length()).map{i->val p=a.getJSONObject(i);val days=p.getJSONArray("days")
    LifeRoutinePlan(p.getString("id"),p.getBoolean("enabled"),(0 until days.length()).map{days.getInt(it)}.toSet(),LocalTime.parse(p.getString("time")).toString(),p.getBoolean("remind"),p.getLong("revision")).also{

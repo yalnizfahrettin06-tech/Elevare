@@ -99,7 +99,7 @@ class WorkoutJourneyTest {
             click("Yavaş göster")
             device.executeShellCommand("screenrecord --time-limit 8 /sdcard/Android/data/com.elevare.active/files/qa/running-slow.mp4")
             click("Duraklat");shot("09-running-paused")
-            device.pressBack();Thread.sleep(400);click("Hareketler");click("Alçak hamle")
+            device.pressBack();Thread.sleep(400);click("90 günlük antrenman planı");click("Hareketler");click("Alçak hamle")
             shot("10-yoga-guide")
             device.executeShellCommand("screenrecord --time-limit 15 /sdcard/Android/data/com.elevare.active/files/qa/yoga-entry-hold-exit.mp4")
             device.pressBack();Thread.sleep(400);click("Bugün")

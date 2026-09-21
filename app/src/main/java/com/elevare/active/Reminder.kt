@@ -84,10 +84,7 @@ object Reminder{
  fun showLife(c:Context,s:UserState,id:String,revision:Long,scheduled:Long){
   val now=ZonedDateTime.now()
   if(!allowed(c)||!canDeliverLife(s,id,revision,scheduled,now))return
-  // Existing sleep/workout windows win a same-time collision. Never catch up later.
-  if(shouldRemindSleep(s,now))return
-  val workoutTime=runCatching{LocalTime.parse(s.workoutReminderTime)}.getOrNull()
-  if(workoutTime!=null&&shouldRemindWorkout(s,now)&&kotlin.math.abs(java.time.temporal.ChronoUnit.MINUTES.between(workoutTime,now.toLocalTime()))<=15)return
+  // The first eligible receiver claims the shared budget. No deferred catch-up.
   val nm=c.getSystemService(NotificationManager::class.java)
   if(nm.getNotificationChannel("elevare_routines")?.importance==NotificationManager.IMPORTANCE_NONE)return
   nm.createNotificationChannel(NotificationChannel("elevare_routines","Seçtiğin rutinler",NotificationManager.IMPORTANCE_DEFAULT))
