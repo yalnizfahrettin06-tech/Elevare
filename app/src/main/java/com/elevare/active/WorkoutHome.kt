@@ -83,6 +83,7 @@ import java.util.Locale
     if(day.adapted) TextButton(onClick={why=true}){Icon(ArcIcons.Settings,null,Modifier.size(17.dp));Spacer(Modifier.width(8.dp));Text("Bugünkü uyarlama",fontSize=13.sp)}
    }
   }
+  TodayScience(s,onFact,store=store)
   if(active==null)LifeHomeSupport(store,onRoutine,onRoutines)
   if(canChooseProgramStart(s,today)&&!scheduled)TextButton(onClick={chooseStart=true}){
    Icon(ArcIcons.Program,null,Modifier.size(18.dp));Spacer(Modifier.width(8.dp));Text("İlk antrenman gününü seç")
@@ -90,7 +91,6 @@ import java.util.Locale
   if(proposal!=null)TextButton(onClick={showProgression=true}){
    Icon(ArcIcons.Progress,null,Modifier.size(18.dp));Spacer(Modifier.width(8.dp));Text("Bir sonraki adımı incele")
   }
-  TodayScience(s,onFact,store=store)
   ExpandSection("Bu bölümün amacı",ArcIcons.Program){
    Text(chapterPurpose(journeyDay(s,today)))
    QuietText("Bu hafta ${weekCompleted(s,today)} seans kaydettin. Bölüm çizgisi takvimini gösterir; kondisyon veya sağlık puanı değildir.")
