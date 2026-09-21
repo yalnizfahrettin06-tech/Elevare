@@ -101,7 +101,8 @@ import java.time.LocalDate
             ArcStage(m.id,Modifier.fillMaxWidth().height(210.dp),reduced,playing=!frozen,speed=if(slow)2f else 1f,decorated=false)
             Text("Hareket rehberi · şematik gösterim",color=ArcMuted,fontSize=12.sp)
         }
-        Row(horizontalArrangement=Arrangement.spacedBy(10.dp)){FilterChip(selected=frozen,onClick={frozen=!frozen},label={Text(if(frozen)"Oynat" else "Duraklat")});FilterChip(selected=slow,onClick={slow=!slow},label={Text("Yavaş göster")})}
+        if(reduced)QuietText("Azaltılmış hareket açık. Figür sabit gösteriliyor; animasyonu ayarlardan açabilirsin.")
+        else Row(horizontalArrangement=Arrangement.spacedBy(10.dp)){FilterChip(selected=frozen,onClick={frozen=!frozen},label={Text(if(frozen)"Oynat" else "Duraklat")});FilterChip(selected=slow,onClick={slow=!slow},label={Text("Yavaş göster")})}
         QuietText(motionCue(m.id))
         Text(m.hint,fontWeight=FontWeight.Bold,fontSize=19.sp)
         if(m.steps.isNotEmpty()){

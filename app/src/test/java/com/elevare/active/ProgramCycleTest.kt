@@ -294,8 +294,8 @@ class ProgramCycleTest {
   assertTrue("EQUIPMENT_MISSING" in d.reasonCodes)
   assertTrue(todayProgram(s.copy(dailyCheckDate=today.toString(),dailyReadiness="pain"),today).blocked)
  }
- @Test fun dayNinetyClosesAndRestartArchivesHistory() {
-  var s=state().copy(start=today.minusDays(89).toString(),done=mapOf("plan:1" to setOf("move"),"2026-09-01" to setOf("move")))
+ @Test fun dayNinetyOneClosesAndRestartArchivesHistory() {
+  var s=state().copy(start=today.minusDays(90).toString(),done=mapOf("plan:1" to setOf("move"),"2026-09-01" to setOf("move")))
   s=s.copy(sessions=listOf(log(s,"P",1)))
   assertTrue(isCycleComplete(s,today))
   assertFalse(todayProgram(s,today.plusDays(10)).training)
@@ -345,7 +345,7 @@ class ProgramCycleTest {
   assertEquals(s,chooseProgramStart(s,today.minusDays(1),today))
   assertEquals(s,chooseProgramStart(s,today.plusDays(7),today))
   val blocked=listOf(s.copy(active=ActiveSession("breath")),s.copy(pausedOn=today.toString()),
-   s.copy(start=today.minusDays(89).toString()),s.copy(sessions=listOf(log(s,"P",1))),
+   s.copy(start=today.minusDays(90).toString()),s.copy(sessions=listOf(log(s,"P",1))),
    s.copy(sessions=listOf(log(s,"P",1,complete=false))),
    s.copy(sessions=listOf(log(s,"P",1).copy(cycleId=""))))
   blocked.forEach { current->
@@ -358,7 +358,7 @@ class ProgramCycleTest {
   assertTrue(canChooseProgramStart(breath,today))
  }
  @Test fun restartClosesAnOpenPauseOnceInArchive() {
-  val s=state().copy(start=today.minusDays(100).toString(),pausedDays=2,pausedOn=today.minusDays(9).toString())
+  val s=state().copy(start=today.minusDays(101).toString(),pausedDays=2,pausedOn=today.minusDays(9).toString())
   assertTrue(isCycleComplete(s,today))
   val next=nextCycle(s,today)
   assertEquals(11L,next.archivedCycles.single().pausedDays)

@@ -108,10 +108,10 @@ class WorkoutJourneyTest {
             click("Yavaş göster")
             device.executeShellCommand("screenrecord --time-limit 8 /sdcard/Android/data/com.elevare.active/files/qa/running-slow.mp4")
             click("Duraklat");shot("09-running-paused")
-            device.pressBack();Thread.sleep(400);click("90 günlük antrenman planı");click("Hareketler");click("Alçak hamle")
+            device.pressBack();Thread.sleep(400);click("Alçak hamle")
             shot("10-yoga-guide")
             device.executeShellCommand("screenrecord --time-limit 15 /sdcard/Android/data/com.elevare.active/files/qa/yoga-entry-hold-exit.mp4")
-            device.pressBack();Thread.sleep(400);click("Bugün")
+            device.pressBack();Thread.sleep(400);device.pressBack();Thread.sleep(400);click("Bugün")
             click("Antrenmana başla")
             click("Hazırım");click("Alanım ve gerekli destekler hazır");click("Başla")
             assertTrue(device.wait(Until.hasObject(By.text("Duraklat")),8000))
@@ -139,6 +139,20 @@ class WorkoutJourneyTest {
             click("Değişikliği incele");click("Tercihi uygula")
             assertEquals(10,Store(context).state.dailyMinutes)
             shot("22-pro-applied")
+        }
+    }
+
+    @Test fun backReturnsToParentAndPreservesItAfterRecreation(){
+        clear();assertTrue(Store(context).update{seededState()})
+        ActivityScenario.launch(MainActivity::class.java).use{scenario->
+            click("Profil");click("Elevare Pro önizlemesi")
+            scenario.recreate()
+            assertTrue(device.wait(Until.hasObject(By.text("Pro önizlemesi")),10000))
+            device.pressBack()
+            assertTrue(device.wait(Until.hasObject(By.text("Ayarlar")),6000))
+            device.pressBack();click("Rutinim");device.pressBack()
+            assertTrue(device.wait(Until.hasObject(By.text("Antrenmana başla")),6000))
+            shot("24-parent-navigation")
         }
     }
 

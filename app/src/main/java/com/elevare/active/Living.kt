@@ -40,10 +40,11 @@ fun routineDue(plan:LifeRoutinePlan,date:LocalDate)=plan.enabled&&date.dayOfWeek
 fun addRoutine(life:LifeState,id:String):LifeState {
  if(LifeCatalog.find(id)==null)return life
  val old=life.plans.find{it.id==id}
- return life.copy(welcomed=true,plans=if(old==null)life.plans+LifeRoutinePlan(id,time=LifeCatalog.defaultTime(id)) else life.plans.map{if(it.id==id)it.copy(enabled=true,revision=it.revision+1)else it})
+ return life.copy(welcomed=true,plans=if(old==null)life.plans+LifeRoutinePlan(id,time=LifeCatalog.defaultTime(id)) else life.plans.map{if(it.id==id)it.copy(enabled=true,remind=false,revision=it.revision+1)else it})
 }
 fun recordRoutine(life:LifeState,id:String,step:String,status:String?,date:LocalDate):LifeState {
  if(LifeCatalog.find(id)?.steps?.none{it.id==step}!=false || life.plans.none{it.id==id} || status !in setOf(null,"done","skip"))return life
+ if(status!=null && !routineDue(life.plans.first{it.id==id},date))return life
  val key=routineKey(date,id,step)
  return life.copy(entries=if(status==null)life.entries-key else life.entries+(key to status))
 }

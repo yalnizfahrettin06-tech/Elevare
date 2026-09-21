@@ -1,4 +1,6 @@
-# Elevare 0.11.0 · Training Arc / Yaşam ritmi
+# Elevare 0.12.0 · Training Arc / Yaşam ritmi
+
+[0.12 işleyiş ve arayüz denetimi](docs/UX-0.12-AUDIT.md): doğru geri dönüş, korunmuş ekran konumu, tam 90 gün, gerçek sonraki antrenman önizlemesi ve rutin kayıt/bildirim korumaları.
 
 [0.11 UX değişiklikleri ve açık sınırlar](docs/UX-0.11-DELIVERY.md): sabit seans kontrolleri, kompakt ana ekran, 4 saniyelik plan özeti, doğrudan rutin kaydı ve onaylı plan uyarlama önizlemesi. Gerçek ödeme ve uzman onayı eklenmedi.
 

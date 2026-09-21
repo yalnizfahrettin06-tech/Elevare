@@ -25,7 +25,10 @@ fun routineIcon(id:String)=when(id){"morning"->ArcIcons.Sun;"evening"->ArcIcons.
 fun slotLabel(slot:String)=when(slot){"morning"->"Sabah";"day"->"Gün içinde";else->"Akşam"}
 
 @Composable fun LifeHomeSupport(store:Store,onRoutine:(String)->Unit,onHub:()->Unit){
- val life=store.state.life;val now=LocalDateTime.now();val visible=visibleRoutines(life,now.toLocalDate(),now.hour)
+ val life=store.state.life
+ var now by remember{mutableStateOf(LocalDateTime.now())}
+ LaunchedEffect(Unit){while(true){now=LocalDateTime.now();kotlinx.coroutines.delay(30_000)}}
+ val visible=visibleRoutines(life,now.toLocalDate(),now.hour)
  var undo by remember{mutableStateOf<Triple<String,String,LocalDate>?>(null)}
  if(!life.welcomed){
   Surface(color=Track,shape=RoundedCornerShape(18.dp),border=BorderStroke(1.dp,ArcLine)){
@@ -164,13 +167,13 @@ fun slotLabel(slot:String)=when(slot){"morning"->"Sabah";"day"->"Gün içinde";e
      Row(verticalAlignment=Alignment.CenterVertically){
       Text("%02d".format(index+1),fontSize=11.sp,color=Coral)
       Text(step.title,Modifier.weight(1f).padding(horizontal=10.dp),fontWeight=FontWeight.Bold,fontSize=17.sp)
-      IconButton(enabled=routineDue(plan,date),onClick={previousEntries=null;store.update{it.copy(life=recordRoutine(it.life,id,step.id,if(status=="done")null else "done",date))}}){Icon(if(status=="done")ArcIcons.Checked else ArcIcons.Circle,if(status=="done")"${step.title}: kaydı geri al" else "${step.title}: yaptım",tint=Coral)}
+      IconButton(enabled=routineDue(plan,date)||status=="done",onClick={previousEntries=null;store.update{it.copy(life=recordRoutine(it.life,id,step.id,if(status=="done")null else "done",date))}}){Icon(if(status=="done")ArcIcons.Checked else ArcIcons.Circle,if(status=="done")"${step.title}: kaydı geri al" else "${step.title}: yaptım",tint=Coral)}
      }
      TextButton(onClick={detail=!detail}){Text(if(detail)"Açıklamayı gizle" else "Nasıl yapabilirim?")}
      if(detail)QuietText(step.detail)
      Row(verticalAlignment=Alignment.CenterVertically){
       Text(when(status){"done"->"Yaptım olarak kaydedildi";"skip"->"Bugün atlandı";else->""},Modifier.weight(1f),fontSize=12.sp,color=ArcMuted)
-      TextButton(enabled=routineDue(plan,date),onClick={previousEntries=null;store.update{it.copy(life=recordRoutine(it.life,id,step.id,if(status=="skip")null else "skip",date))}}){Text(if(status=="skip")"Geri al" else "Bugün atla")}
+      TextButton(enabled=routineDue(plan,date)||status=="skip",onClick={previousEntries=null;store.update{it.copy(life=recordRoutine(it.life,id,step.id,if(status=="skip")null else "skip",date))}}){Text(if(status=="skip")"Geri al" else "Bugün atla")}
      }
     }
    }

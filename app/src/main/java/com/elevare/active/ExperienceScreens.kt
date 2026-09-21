@@ -29,7 +29,7 @@ import java.time.LocalDate
  var minutes by rememberSaveable{mutableIntStateOf(s.dailyMinutes)}
  var confirm by remember{mutableStateOf(false)}
  var saved by remember{mutableStateOf(false)}
- val preview=remember(s,minutes){runCatching{todayProgram(applyTimePreference(s,minutes),LocalDate.now())}.getOrNull()}
+ val preview=remember(s,minutes){nextTrainingPreview(applyTimePreference(s,minutes),LocalDate.now())}
  PageColumn{
   TopBar("Pro önizlemesi",onBack)
   Text("Planını kendine uyarla.",style=MaterialTheme.typography.headlineMedium)
@@ -40,14 +40,17 @@ import java.time.LocalDate
     Text("Antrenmana ayıracağın süre değişti mi?",fontWeight=FontWeight.Bold)
     ProfileChoices.minutes.chunked(2).forEach{pair->
      Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){
-      pair.forEach{value->FilterChip(selected=minutes==value,onClick={minutes=value;saved=false},label={Text("$value dk")},modifier=Modifier.weight(1f).heightIn(min=48.dp))}
+      pair.forEach{value->FilterChip(selected=minutes==value,onClick={minutes=value;saved=false},label={Text("$value dk")},
+       leadingIcon=if(minutes==value){{Icon(ArcIcons.Check,"Seçili",Modifier.size(18.dp))}}else null,
+       colors=FilterChipDefaults.filterChipColors(selectedContainerColor=Coral,selectedLabelColor=Paper,selectedLeadingIconColor=Paper),modifier=Modifier.weight(1f).heightIn(min=48.dp))}
      }
     }
     if(s.active!=null)QuietText("Açık seansın korunuyor. Süreyi değiştirmeden önce seansını bitir veya bırak.")
     else preview?.let{p->
-     Text("Önizleme: ${p.workout.title} · ${minutesText(p.workout.seconds)}",fontWeight=FontWeight.Bold)
-     QuietText(if(p.training)"Yeni süre sonraki seanslarına uygulanır. Geçmişin korunur." else "Bugün dinlenme veya plan dışı gün. Tercihin sonraki antrenmanlarına uygulanır.")
+     Text("${p.day}. gün · ${p.workout.title} · ${minutesText(p.workout.seconds)}",fontWeight=FontWeight.Bold)
+     QuietText("Sıradaki planlı antrenmanın önizlemesi. Dinlenme günlerin ve geçmişin korunur.")
     }
+    if(s.active==null&&preview==null)QuietText(if(s.pausedOn!=null)"Planın duraklatılmış. Önce ayarlardan planına devam et." else "Bu döngüde kalan antrenman yok. Yeni döngünü başlattığında süreyi uyarlayabilirsin.")
     BigButton(if(saved)"Tercihin kaydedildi" else "Değişikliği incele",{confirm=true},enabled=s.active==null&&minutes!=s.dailyMinutes&&preview!=null)
    }
   }

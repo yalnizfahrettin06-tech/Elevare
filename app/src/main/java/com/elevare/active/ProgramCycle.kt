@@ -97,7 +97,7 @@ fun programElapsedDay(s: UserState, today: LocalDate = LocalDate.now()): Int {
  val end = s.pausedOn?.let { runCatching { LocalDate.parse(it) }.getOrNull() } ?: today
  return (ChronoUnit.DAYS.between(start, end) - s.pausedDays + 1).coerceIn(1, Int.MAX_VALUE.toLong()).toInt()
 }
-fun isCycleComplete(s: UserState, today: LocalDate = LocalDate.now()) = programElapsedDay(s, today) >= PROGRAM_LENGTH
+fun isCycleComplete(s: UserState, today: LocalDate = LocalDate.now()) = programElapsedDay(s, today) > PROGRAM_LENGTH
 fun isProgramScheduled(s:UserState,today:LocalDate=LocalDate.now()):Boolean =
  runCatching{LocalDate.parse(s.start)>today}.getOrDefault(false)
 

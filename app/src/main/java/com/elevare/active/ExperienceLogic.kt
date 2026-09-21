@@ -23,6 +23,12 @@ fun applyTimePreference(s:UserState,minutes:Int):UserState {
 fun weekCompleted(s:UserState,today:LocalDate)=s.sessions.count{
  it.completed&&it.type=="workout"&&it.date>=today.with(java.time.DayOfWeek.MONDAY).toString()&&it.date<=today.toString()
 }
+/** Preview the next actual training day, not a rest-day placeholder. */
+fun nextTrainingPreview(s:UserState,today:LocalDate):ProgramDay? {
+ if(s.pausedOn!=null||isCycleComplete(s,today))return null
+ return (programElapsedDay(s,today)..PROGRAM_LENGTH).asSequence()
+  .map{programForDay(s,it,today)}.firstOrNull{it.training}
+}
 fun chapterPurpose(day:Int)=when(day.coerceIn(1,90)){
  in 1..14->"Hareketleri tanı, sana uyan günleri bul."
  in 15..28->"Takvimindeki ritmi koru; gerekirse sadeleştir."

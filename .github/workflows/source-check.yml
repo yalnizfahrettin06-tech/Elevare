@@ -27,7 +27,7 @@ jobs:
       - name: Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: Elevare-0.11.0-debug-apk
+          name: Elevare-0.12.0-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
       - name: Enable KVM
@@ -49,7 +49,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Elevare-0.11.0-verification
+          name: Elevare-0.12.0-verification
           path: |
             device-qa/
             app/build/reports/
