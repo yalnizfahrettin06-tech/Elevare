@@ -36,11 +36,7 @@ object Reminder{
   val candidates=mutableListOf<Triple<Long,Int,()->PendingIntent>>()
   fun scheduleOne(kind:ReminderKind,time:String){
    if(nm.getNotificationChannel(kind.channelId)?.importance==NotificationManager.IMPORTANCE_NONE)return
-   val local=runCatching{LocalTime.parse(time)}.getOrNull()?:return
-   val next=nextReminderAt(local,now)
-   if(lifeQuiet(s.life,next.toLocalTime()))return
-   if(kind==ReminderKind.WORKOUT&&!shouldRemindWorkout(s.copy(active=null),next))return
-   if(kind==ReminderKind.SLEEP&&!shouldRemindSleep(s,next))return
+   val next=nextEligibleReminderAt(s,kind,now)?:return
    // Inexact alarms: no exact-alarm permission and no promise of minute-precise delivery.
    val epoch=next.toInstant().toEpochMilli()
    candidates+=Triple(epoch,if(kind==ReminderKind.SLEEP)0 else 1,{pending(c,kind,epoch)})

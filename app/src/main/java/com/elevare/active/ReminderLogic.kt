@@ -20,6 +20,14 @@ fun nextReminderAt(time:LocalTime,now:ZonedDateTime):ZonedDateTime {
  val candidate=now.toLocalDate().atTime(time).atZone(now.zone)
  return if(candidate.isAfter(now))candidate else now.toLocalDate().plusDays(1).atTime(time).atZone(now.zone)
 }
+fun nextEligibleReminderAt(s:UserState,kind:ReminderKind,now:ZonedDateTime):ZonedDateTime? {
+ val local=if(kind==ReminderKind.SLEEP)sleepReminderTime(s) else runCatching{LocalTime.parse(s.workoutReminderTime)}.getOrNull()
+ if(local==null||s.life.notificationsMuted)return null
+ return (0..7).map{now.toLocalDate().plusDays(it.toLong()).atTime(local).atZone(now.zone)}.firstOrNull{at->
+  at.isAfter(now)&&!lifeQuiet(s.life,at.toLocalTime())&&
+   (if(kind==ReminderKind.WORKOUT)shouldRemindWorkout(s.copy(active=null),at) else shouldRemindSleep(s,at))
+ }
+}
 fun isQuietTime(time:LocalTime,bed:String,wake:String):Boolean {
  val from=runCatching{LocalTime.parse(bed)}.getOrNull()?:return false
  val until=runCatching{LocalTime.parse(wake)}.getOrNull()?:return false

@@ -40,6 +40,13 @@ class RenewalTest {
    assertEquals(3,archive.completedSessions);assertEquals(-1,archive.plannedSessions)
   }
  }
+ @Test fun workoutReminderSkipsRestWithoutLosingFutureDays(){
+  val s=ready().copy(start=today.minusDays(1).toString(),workoutReminders=true)
+  val now=today.atTime(12,0).atZone(ZoneId.of("Europe/Istanbul"))
+  assertFalse(todayProgram(s,today).training)
+  val next=nextEligibleReminderAt(s,ReminderKind.WORKOUT,now)
+  assertNotNull(next);assertTrue(next!!.toLocalDate()>today)
+ }
  @Test fun sameTimePriorityIsDeterministic(){
   val jobs=listOf(Triple(1000L,3,"routine"),Triple(1000L,1,"workout"),Triple(1000L,0,"sleep"))
   assertEquals("sleep",earliestReminder(jobs)!!.third)
