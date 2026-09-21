@@ -3,16 +3,30 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 data class Move(val id:String,val title:String,val category:String,val seconds:Int,val hint:String,val steps:List<String>)
-data class Step(val moveId:String,val seconds:Int,val rest:Boolean=false)
+data class Step(val moveId:String,val seconds:Int,val rest:Boolean=false,val phase:String="",val side:String="")
 data class Workout(val id:String,val title:String,val subtitle:String,val category:String,val steps:List<Step>,val color:Int=0){
  val seconds get()=steps.sumOf{it.seconds}
- val movementCount get()=steps.count{!it.rest}
- val equipment get()=if(steps.any{it.moveId=="squat"})"Sabit sandalye + duvar" else if(steps.any{it.moveId in listOf("wall","balance","calf")})"Duvar / sabit destek" else "Ekipmansız"
+ val movementCount get()=steps.filter{!it.rest&&it.phase!="transition"}.map{it.moveId}.distinct().size
+ val requiredEquipment get()=buildSet {
+  if(steps.any{it.moveId=="squat"})add("chair")
+  if(steps.any{it.moveId=="wall"})add("wall")
+  if(steps.any{it.moveId in listOf("balance","calf")} && none{it in setOf("chair","wall")})add("support")
+  if(steps.any{it.moveId in listOf("catcow","child","lunge")})add("mat")
+ }
+ val equipment get()=requiredEquipment.map{when(it){"chair"->"Sabit sandalye";"wall"->"Duvar";"support"->"Sabit sandalye veya duvar";else->"Yumuşak zemin"}}.joinToString(" · ").ifEmpty{"Ekipmansız"}
 }
-data class SessionLog(val id:String,val title:String,val date:String,val seconds:Int,val feeling:String,val type:String="workout",val workoutId:String="")
+data class SessionLog(val id:String,val title:String,val date:String,val seconds:Int,val feeling:String,val type:String="workout",val workoutId:String="",val completedAtEpochMs:Long=0,val cycleId:String="",val completed:Boolean=true,val loadKind:String="",val programDay:Int=0,val plannedSeconds:Int=seconds)
 data class SleepLog(val date:String,val bed:String,val wake:String){val minutes get()=sleepDuration(bed,wake)}
-data class ActiveSession(val workoutId:String,val step:Int=0,val remaining:Int=0,val deadline:Long=0,val running:Boolean=true,val elapsed:Int=0,val startedDate:String=LocalDate.now().toString(),val id:String=java.util.UUID.randomUUID().toString(),val planDay:Int=1)
-data class UserState(val ready:Boolean=false,val name:String="",val start:String=LocalDate.now().toString(),val favorites:Set<String> = emptySet(),val done:Map<String,Set<String>> = emptyMap(),val sessions:List<SessionLog> = emptyList(),val sleeps:List<SleepLog> = emptyList(),val bed:String="22:00",val wake:String="07:00",val reducedMotion:Boolean=false,val dark:Boolean=true,val haptic:Boolean=true,val gentle:Boolean=false,val pausedOn:String?=null,val pausedDays:Long=0,val active:ActiveSession?=null,val onboardingVersion:Int=0,val age:Int=0,val heightCm:Int=0,val targetCm:Int=0,val dailyMinutes:Int=5,val trialDays:Int=0,val reminders:Boolean=false,val focus:String="",val recentGrowth:String="",val sleepHabit:String="",val activityHabit:String="",val safety:String="",val voiceCoach:Boolean=true,val timerSound:String="countdown",val environment:String="",val trainingDays:Int=0,val autoAdvance:Boolean=true)
+data class ActiveSession(val workoutId:String,val step:Int=0,val remaining:Int=0,val deadline:Long=0,val running:Boolean=true,val elapsed:Int=0,val startedDate:String=LocalDate.now().toString(),val id:String=java.util.UUID.randomUUID().toString(),val planDay:Int=1,val snapshot:Workout?=null,val elapsedRealtimeDeadline:Long=0)
+data class UserState(val ready:Boolean=false,val name:String="",val start:String=LocalDate.now().toString(),val favorites:Set<String> = emptySet(),val done:Map<String,Set<String>> = emptyMap(),val sessions:List<SessionLog> = emptyList(),val sleeps:List<SleepLog> = emptyList(),val bed:String="22:00",val wake:String="07:00",val reducedMotion:Boolean=false,val dark:Boolean=true,val haptic:Boolean=true,val gentle:Boolean=false,val pausedOn:String?=null,val pausedDays:Long=0,val active:ActiveSession?=null,val onboardingVersion:Int=0,val age:Int=0,val heightCm:Int=0,val targetCm:Int=0,val dailyMinutes:Int=5,val trialDays:Int=0,val reminders:Boolean=false,val focus:String="",val recentGrowth:String="",val sleepHabit:String="",val activityHabit:String="",val safety:String="",val voiceCoach:Boolean=true,val timerSound:String="countdown",val environment:String="",val trainingDays:Int=0,val autoAdvance:Boolean=true,
+ val runningExperience:String="",val equipment:Set<String> = emptySet(),val progressionAccepted:Boolean=false,
+ val dailyCheckDate:String="",val dailyReadiness:String="",val dailyEnvironment:String="",val externalSportDate:String="",val dailyEquipmentConfirmed:Boolean=false,
+ val cycleId:String=java.util.UUID.randomUUID().toString(),val schemaVersion:Int=9,val onboardingDraft:OnboardingDraft?=null,
+ val demoStartedAt:Long=0,val archivedCycles:List<ProgramCycleArchive> = emptyList(),
+ val savedFacts:Set<String> = emptySet(),val factHistory:Map<String,String> = emptyMap(),
+ val factSeenAt:Map<String,String> = emptyMap(),val recentFactIds:List<String> = emptyList(),
+ val workoutReminders:Boolean=false,val workoutReminderTime:String="17:00",val lastReminderDate:String="",
+ val sleepReminderLeadMinutes:Int=30,val progressionConsents:List<ProgressionConsent> = emptyList(),val life:LifeState=LifeState())
 object Content{
  val moves=listOf(
  Move("sprint","Kontrollü hızlan","Koşu",15,"Rahat koşudan hızlan. Tam efora çıkma; adımların kontrollü kalsın.",listOf("Önce programdaki ısınmayı tamamla. Düz, kuru ve açık bir alan seç.","Hızını kademeli artır. Yaklaşık 6/10 eforda kal; nefesin çok zorlanırsa yürü.","Bölüm bitince yavaşlayarak yürüyüşe geç. Kesintisiz uzun sprint yapma.")),
@@ -48,8 +62,17 @@ fun unmark(s:UserState,id:String,date:String=LocalDate.now().toString())=s.copy(
 fun remaining(s:ActiveSession,now:Long=System.currentTimeMillis()):Int=if(!s.running)s.remaining else ((s.deadline-now+999)/1000).toInt().coerceAtLeast(0)
 fun completeSession(s:UserState,active:ActiveSession,feeling:String):UserState{
  if(s.sessions.any{it.id==active.id})return s.copy(active=null)
- val w=Content.workout(active.workoutId)
+ val w=activeWorkout(active)
  if(active.step!=w.steps.lastIndex||remaining(active)>0)return s
  val next=markDone(s,if(w.id=="breath")"breath" else "move",active.startedDate,active.planDay)
- return next.copy(active=null,gentle=s.gentle||feeling=="Rahatsızlık",safety=if(feeling=="Rahatsızlık")"pain" else s.safety,sessions=next.sessions+SessionLog(active.id,w.title,active.startedDate,w.seconds,feeling,if(w.id=="breath")"breath" else "workout",w.id))
+ return next.copy(active=null,gentle=s.gentle||feeling=="Rahatsızlık",safety=if(feeling=="Rahatsızlık")"pain" else s.safety,sessions=next.sessions+SessionLog(active.id,w.title,active.startedDate,w.seconds,feeling,if(w.id=="breath")"breath" else "workout",w.id,System.currentTimeMillis(),s.cycleId,true,if(w.hasSprint())"run" else w.category,active.planDay,w.seconds))
+}
+fun activeWorkout(a:ActiveSession):Workout=a.snapshot?:Content.workout(a.workoutId)
+fun abandonSession(s:UserState,now:Long=System.currentTimeMillis()):UserState {
+ val a=s.active?:return s
+ if(s.sessions.any{it.id==a.id})return s.copy(active=null)
+ val w=activeWorkout(a)
+ val used=(a.elapsed+w.steps[a.step].seconds-remaining(a,now)).coerceIn(0,w.seconds)
+ if(used==0)return s.copy(active=null)
+ return s.copy(active=null,sessions=s.sessions+SessionLog(a.id,w.title,a.startedDate,used,"Kısmi oturum",if(w.id=="breath")"breath" else "workout",w.id,now,s.cycleId,false,if(w.hasSprint())"run" else w.category,a.planDay,w.seconds))
 }

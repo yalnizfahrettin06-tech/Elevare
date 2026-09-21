@@ -6,167 +6,360 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.*
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import kotlinx.coroutines.delay
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable fun TrainingOnboarding(store:Store){
  LaunchedEffect(Unit){store.pauseTimer()}
  val s=store.state
- var step by rememberSaveable{mutableIntStateOf(0)}
- var age by rememberSaveable{mutableIntStateOf(s.age)}
- var focus by rememberSaveable{mutableStateOf(s.focus)}
- var growth by rememberSaveable{mutableStateOf(s.recentGrowth)}
- var sleep by rememberSaveable{mutableStateOf(s.sleepHabit)}
- var activity by rememberSaveable{mutableStateOf(s.activityHabit)}
- var environment by rememberSaveable{mutableStateOf(s.environment)}
- var days by rememberSaveable{mutableIntStateOf(s.trainingDays)}
- var minutes by rememberSaveable{mutableIntStateOf(if(s.ready)s.dailyMinutes else 0)}
- var safety by rememberSaveable{mutableStateOf(s.safety)}
- var elapsed by rememberSaveable(age,focus,growth,sleep,activity,environment,days,minutes,safety){mutableLongStateOf(0L)}
- val answers=TrainingAnswers(age,focus,growth,sleep,activity,minutes,safety,environment,days)
- fun finish(trial:Int){
-  if (!answers.complete()) return
-  store.update{it.copy(ready=true,start=java.time.LocalDate.now().toString(),pausedDays=0,pausedOn=null,onboardingVersion=7,age=age,focus=focus,recentGrowth=growth,sleepHabit=sleep,activityHabit=activity,dailyMinutes=minutes,safety=safety,environment=environment,trainingDays=days,dark=true,trialDays=if(s.ready)s.trialDays else normalizeTrialDays(trial),active=null)}
+ val editing=s.ready
+ var draft by remember {
+  mutableStateOf(s.onboardingDraft?.restored() ?: OnboardingDraft(
+   answers=if(editing)s.answers() else TrainingAnswers(),
+   step=if(editing)(1..ONBOARDING_QUESTION_COUNT).firstOrNull{!onboardingStepValid(s.answers(),it)}?:1 else 0
+  ))
  }
- BackHandler(enabled=step>0){step=if(step>=10)9 else step-1}
- if(step==10){PreparationScreen(answers,elapsed,{elapsed=it},{step=9},{step=11});return}
- if(step==11){ProgramReady(answers,s.ready,{finish(TRIAL_DAYS)},{finish(0)},{step=9});return}
- val valid=when(step){
-  0->true;1->age in ProfileChoices.ages;2->focus in ProfileChoices.focus;3->activity in ProfileChoices.activity
-  4->environment in ProfileChoices.environment;5->days in ProfileChoices.days;6->sleep in ProfileChoices.sleep
-  7->growth in ProfileChoices.growth;8->minutes in ProfileChoices.minutes;else->answers.complete()
+ var elapsed by remember{mutableLongStateOf(draft.preparingElapsedMs)}
+ var saveError by remember{mutableStateOf(false)}
+ var finishing by remember{mutableStateOf(false)}
+ var showAgeScope by remember{mutableStateOf(false)}
+ val answers=draft.answers
+ val step=draft.step
+ val canCancel=editing && s.answers().complete()
+ fun save(next:OnboardingDraft):Boolean {
+  val success=store.update{it.copy(onboardingDraft=next)}
+  saveError=!success
+  return success
  }
- val captions=listOf("BAŞLANGIÇ","SENİ TANIYALIM","ODAK NOKTAN","BAŞLANGIÇ SEVİYEN","ANTRENMAN ALANIN","HAFTALIK RİTMİN","TOPARLANMAN","BÜYÜME GÖZLEMİN","ZAMANIN","SON KONTROL")
+ fun answer(next:TrainingAnswers){
+  elapsed=0L
+  draft=draft.copy(answers=next,preparingElapsedMs=0L)
+  save(draft)
+ }
+ fun navigate(next:Int){
+  val candidate=draft.copy(step=next,preparingElapsedMs=elapsed)
+  if(save(candidate))draft=candidate
+ }
+ fun cancel(){
+  if(canCancel)store.update{it.copy(onboardingVersion=TRAINING_ONBOARDING_VERSION,onboardingDraft=null)}
+ }
+ fun goBack(){
+  when {
+   step>=PREPARATION_STEP->navigate(ONBOARDING_QUESTION_COUNT)
+   step==1 && canCancel->cancel()
+   step>0->navigate(step-1)
+  }
+ }
+ fun finish(startDemo:Boolean){
+  if(!answers.complete() || finishing)return
+  finishing=true
+  val success=store.update{completeOnboarding(it,answers,startDemo)}
+  saveError=!success
+  if(!success)finishing=false
+ }
+ BackHandler(enabled=step>0 || canCancel){goBack()}
+ if(showAgeScope)AlertDialog(
+  onDismissRequest={showAgeScope=false},
+  title={Text("Bu program 13–21 yaş için")},
+  text={Text("Farklı bir yaşta olduğunda yanlış yaş seçmeni istemiyoruz. Bu prototip henüz yaş grubuna uygun bir antrenman programı sunmuyor.")},
+  confirmButton={TextButton(onClick={showAgeScope=false}){Text("Anladım")}}
+ )
+ if(step==PREPARATION_STEP){
+  PreparationScreen(
+   answers,elapsed,
+   onElapsed={next->
+    val previousSecond=elapsed/1000
+    elapsed=next
+    if(next/1000!=previousSecond){draft=draft.copy(preparingElapsedMs=next);save(draft)}
+   },
+   onBack={goBack()},
+   onReady={navigate(PROGRAM_READY_STEP)},
+   reducedMotion=s.reducedMotion,
+   saveError=saveError,
+   onCheckpoint={next->elapsed=next;draft=draft.copy(preparingElapsedMs=next);save(draft)}
+  )
+  return
+ }
+ if(step==PROGRAM_READY_STEP){
+  ProgramReady(
+   answers,editing,
+   onFinish={finish(true)},onSkip={finish(false)},onBack={navigate(1)},
+   saveError=saveError,saving=finishing
+  )
+  return
+ }
+ val valid=if(step==ONBOARDING_QUESTION_COUNT)answers.complete() else onboardingStepValid(answers,step)
+ val captions=listOf("BAŞLANGIÇ","SENİ TANIYALIM","ODAK NOKTAN","AKTİVİTE RİTMİN","KOŞU DENEYİMİN","ANTRENMAN ALANIN","ELİNDEKİ DESTEKLER","HAFTALIK RİTMİN","ZAMANIN","TOPARLANMAN","BÜYÜME GÖZLEMİN","SON KONTROL")
  Column(Modifier.fillMaxSize()){
   Row(Modifier.fillMaxWidth().padding(horizontal=20.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){
-   if(step>0)IconButton(onClick={step--}){Icon(Icons.Rounded.ArrowBack,"Geri")}
-   Text("elevare",Modifier.weight(1f),fontSize=23.sp,fontWeight=FontWeight.Black)
-   if(step>0)Text("$step / 9",color=Sky,fontSize=13.sp)
+   if(step>0)IconButton(onClick={goBack()}){Icon(ArcIcons.Back,"Geri")}
+   ArcBrand(Modifier.weight(1f),compact=true)
+   if(step>0)Text("%02d / %02d".format(step,ONBOARDING_QUESTION_COUNT),Modifier.semantics{contentDescription="$ONBOARDING_QUESTION_COUNT sorudan $step. soru"},color=ArcMuted,fontSize=12.sp)
+   if(canCancel)IconButton(onClick={cancel()}){Icon(ArcIcons.Close,"Değişiklikleri iptal et")}
   }
-  if(step>0)LinearProgressIndicator(progress={step/9f},modifier=Modifier.fillMaxWidth().padding(horizontal=24.dp).height(3.dp),color=Sky)
+  if(step>0)Row(Modifier.fillMaxWidth().padding(horizontal=24.dp,vertical=12.dp).clearAndSetSemantics{},horizontalArrangement=Arrangement.spacedBy(4.dp)){
+   (1..ONBOARDING_QUESTION_COUNT).forEach{index->Box(Modifier.weight(1f).height(3.dp).background(if(index<=step)Coral else ArcLine,RoundedCornerShape(3.dp)))}
+  }
   AnimatedContent(targetState=step,modifier=Modifier.weight(1f),transitionSpec={
    val forward=targetState>initialState
-   (slideInHorizontally(tween(if(s.reducedMotion)0 else 240)){if(forward)it/5 else -it/5}+fadeIn(tween(220))) togetherWith
-    (slideOutHorizontally(tween(200)){if(forward)-it/5 else it/5}+fadeOut(tween(160)))
-  },label="Sorular"){
-   current->Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
-    if(current>0)Eyebrow(captions[current])
+   val duration=if(s.reducedMotion)0 else 200
+   (slideInHorizontally(tween(duration)){if(forward)it/8 else -it/8}+fadeIn(tween(duration))) togetherWith
+    (slideOutHorizontally(tween(duration)){if(forward)-it/8 else it/8}+fadeOut(tween(duration)))
+  },label="Sorular"){current->
+   Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal=24.dp,vertical=20.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
+    if(current>0)Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)){
+     Icon(when(current){1,2,3->ArcIcons.Person;4,5,6->ArcIcons.Run;7,8->ArcIcons.Clock;9->ArcIcons.Moon;10->ArcIcons.Book;else->ArcIcons.Shield},null,Modifier.size(22.dp),tint=Coral)
+     Eyebrow(captions[current])
+    }
     when(current){
      0->{
-      Tag("KOŞU  /  GÜÇ  /  YOGA",Mint,Sky)
-      Text("Ritmini bul.\nHarekete geç.",fontSize=34.sp,lineHeight=38.sp,fontWeight=FontWeight.ExtraBold)
-      QuietText("Sana göre bir hafta. Adım adım sesli koç.")
-      Surface(color=Track,shape=RoundedCornerShape(24.dp)){Pose("sprint",Modifier.fillMaxWidth().height(195.dp),Ink,s.reducedMotion)}
-      Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Tag("Kısa intervaller");Tag("Akıcı hareketler")}
-      QuietText("Birkaç soruyla programını birlikte hazırlayalım.")
+      Eyebrow("KENDİ HİKÂYENİN BAŞLANGICI")
+      Text("Hikâyen\nhareketle başlar.",fontSize=37.sp,lineHeight=42.sp,letterSpacing=(-1.2).sp,fontWeight=FontWeight.ExtraBold,modifier=Modifier.semantics{heading()})
+      QuietText("Sana göre antrenman. Her seans yeni bir iz.")
+      ArcStage("sprint",Modifier.fillMaxWidth().height(216.dp),s.reducedMotion)
+      FlowRow(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(18.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
+       StatPill(ArcIcons.Program,"90 günlük plan")
+       StatPill(ArcIcons.Sound,"Sesli koç")
+      }
+      QuietText("11 kısa soruyla başlayalım. Yanıtların yalnızca cihazında.")
      }
-     1 -> {
+     1->{
       QuestionTitle("Kaç yaşındasın?")
-      QuietText("Başlangıç temposunu yaşına göre düzenleyelim.")
-      ProfileChoices.ages.toList().chunked(3).forEach { row ->
-       Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-        row.forEach { v ->
-         Box(Modifier.weight(1f)) { Choice("$v",selected=age==v) { age=v } }
-        }
-       }
+      QuietText("Yaşın tek başına antrenman seviyeni belirlemez.")
+      ProfileChoices.ages.toList().chunked(3).forEach{row->
+       Row(horizontalArrangement=Arrangement.spacedBy(10.dp)){row.forEach{value->
+        Box(Modifier.weight(1f)){OnboardingChoice("$value",answers.age==value,description="$value yaş"){answer(answers.copy(age=value))}}
+       }}
+      }
+      TextButton(onClick={answer(answers.copy(age=0));showAgeScope=true}){Text("Başka bir yaştayım")}
+     }
+     2->{
+      QuestionTitle("Neye odaklanalım?")
+      QuietText("Programın ve günlük bilgilerin buna göre şekillenecek.")
+      AnswerChoices(ProfileChoices.focus,answers.focus){answer(answers.copy(focus=it))}
+     }
+     3->{
+      QuestionTitle("Şu an ne kadar aktifsin?")
+      QuietText("Spor dersi, takım sporu ve yürüyüş de dahil.")
+      AnswerChoices(ProfileChoices.activity,answers.activity){answer(answers.copy(activity=it))}
+     }
+     4->{
+      QuestionTitle("Koşu deneyimin nasıl?")
+      QuietText("Rahat koşu ve interval farklı deneyimlerdir.")
+      AnswerChoices(ProfileChoices.runningExperience,answers.runningExperience){answer(answers.copy(runningExperience=it))}
+     }
+     5->{
+      QuestionTitle("Nerede çalışacaksın?")
+      AnswerChoices(ProfileChoices.environment,answers.environment){answer(answers.copy(environment=it))}
+      if(answers.environment in setOf("outdoor","both"))QuietText("Koşu için düz, açık ve güvenli bir alan.")
+     }
+     6->{
+      QuestionTitle("Hangi destekler var?")
+      QuietText("Birden fazla seçebilirsin. Satın alman gerekmez.")
+      ProfileChoices.equipment.forEach{(id,label)->
+       OnboardingChoice(label,id in answers.equipment,multiple=true){answer(answers.copy(equipment=toggleEquipment(answers.equipment,id)))}
       }
      }
-     2->{QuestionTitle("Neye odaklanalım?");QuietText("Programın ve günlük bilgiler buna göre şekillenecek.");AnswerChoices(ProfileChoices.focus,focus){focus=it}}
-     3->{QuestionTitle("Şu an ne kadar aktifsin?");QuietText("Koşu, spor ve aktif yürüyüşleri düşün.");AnswerChoices(ProfileChoices.activity,activity){activity=it}}
-     4->{QuestionTitle("Nerede çalışacaksın?");QuietText("Koşu için güvenli, açık bir alan gerekir.");AnswerChoices(ProfileChoices.environment,environment){environment=it}}
-     5->{QuestionTitle("Haftada kaç gün?");QuietText("Aralara toparlanma yerleştireceğiz.");ProfileChoices.days.forEach{v->Choice("$v gün",if(v==2)"Sakin başlangıç" else if(v==3)"Dengeli bir hafta" else "Daha düzenli bir ritim",days==v){days=v}}}
-     6->{QuestionTitle("Genelde ne kadar uyuyorsun?");AnswerChoices(ProfileChoices.sleep,sleep){sleep=it};QuietText("Az uyuduğunda programı hafifleteceğiz.")}
-     7->{QuestionTitle("Son 6 ayda boyunda artış fark ettin mi?");AnswerChoices(ProfileChoices.growth,growth){growth=it};QuietText("Bu gözlem büyüme bilgilerini seçmemize yardım eder. Boy tahmini yapılmaz.")}
-     8 -> {
+     7->{
+      QuestionTitle("Haftada kaç gün?")
+      QuietText("Dinlenme günleri programına dahil.")
+      ProfileChoices.days.forEach{value->OnboardingChoice("$value gün",answers.days==value){answer(answers.copy(days=value))}}
+     }
+     8->{
       QuestionTitle("Bir seansa ne kadar ayırırsın?")
-      ProfileChoices.minutes.chunked(2).forEach { row ->
-       Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-        row.forEach { v ->
-         Box(Modifier.weight(1f)) { Choice("$v dk",selected=minutes==v) { minutes=v } }
-        }
-       }
+      ProfileChoices.minutes.chunked(2).forEach{row->
+       Row(horizontalArrangement=Arrangement.spacedBy(10.dp)){row.forEach{value->
+        Box(Modifier.weight(1f)){OnboardingChoice("$value dk",answers.minutes==value,description="$value dakika"){answer(answers.copy(minutes=value))}}
+       }}
       }
-      QuietText("Isınma ve toparlanma bu süreye dahil. 5 dakika seçersen koşuya hazırlıkla başlarız.")
+      QuietText("Toplam süre; ısınma ve toparlanma dahil.")
      }
-     9->{QuestionTitle("Başlamaya uygun musun?");QuietText("Hareketi etkileyen ağrı veya uzman kısıtlaması var mı?");AnswerChoices(ProfileChoices.safety,safety){safety=it};if(safety.isNotBlank()&&safety!="clear")QuietText("Programını görebilirsin. Başlamadan önce uygunluğunu netleştirelim.")}
+     9->{
+      QuestionTitle("Uykun çoğunlukla nasıl?")
+      AnswerChoices(ProfileChoices.sleep,answers.sleep){answer(answers.copy(sleep=it))}
+     }
+     10->{
+      QuestionTitle("Son 6 ayda boyunda artış fark ettin mi?")
+      QuietText("Bu soru boy tahmini yapmaz, antrenman yükünü değiştirmez.")
+      AnswerChoices(ProfileChoices.growth,answers.recentGrowth){answer(answers.copy(recentGrowth=it))}
+     }
+     11->{
+      QuestionTitle("Hareketi etkileyen bir durum var mı?")
+      QuietText("Ağrı, rahatsızlık veya uzman kısıtlamasını düşün.")
+      AnswerChoices(ProfileChoices.safety,answers.safety){answer(answers.copy(safety=it))}
+      if(answers.safety.isNotBlank() && answers.safety!="clear")QuietText("Planını görebilirsin. Başlamadan önce uygunluğunu bir uzmanla netleştir.")
+     }
     }
    }
   }
-  Column(Modifier.padding(horizontal=24.dp,vertical=16.dp)){
-   BigButton(if(step==0)"Programımı oluştur" else if(step==9)"Programımı hazırla" else "Devam et",{step++},enabled=valid)
+  Column(Modifier.fillMaxWidth().background(Paper).padding(horizontal=24.dp,vertical=14.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
+   HorizontalDivider(color=ArcLine.copy(alpha=.55f),modifier=Modifier.padding(bottom=6.dp))
+   if(saveError)SaveError()
+   if(!valid)Text("Devam etmek için bir yanıt seç.",fontSize=13.sp,color=MaterialTheme.colorScheme.onSurfaceVariant,modifier=Modifier.semantics{liveRegion=LiveRegionMode.Polite})
+   BigButton(
+    if(step==0)"Hikâyeme başla" else if(step==ONBOARDING_QUESTION_COUNT)if(editing)"Programı önizle" else "Programımı hazırla" else "Devam et",
+    onClick={
+     if(valid){
+      if(step==ONBOARDING_QUESTION_COUNT && editing){elapsed=PREPARATION_DURATION_MS;navigate(PROGRAM_READY_STEP)}
+      else navigate(step+1)
+     }
+    },
+    enabled=valid
+   )
   }
  }
 }
-@Composable private fun QuestionTitle(text:String){Text(text,style=MaterialTheme.typography.headlineLarge)}
-@Composable private fun AnswerChoices(options:Map<String,String>,selected:String,onSelect:(String)->Unit){options.forEach{(id,label)->Choice(label,selected=selected==id){onSelect(id)}}}
 
-@Composable fun PreparationScreen(answers:TrainingAnswers,elapsed:Long,onElapsed:(Long)->Unit,onBack:()->Unit,onReady:()->Unit){
+@Composable private fun QuestionTitle(text:String){
+ Text(text,fontSize=30.sp,lineHeight=36.sp,letterSpacing=(-.6).sp,fontWeight=FontWeight.Bold,modifier=Modifier.semantics{heading()})
+}
+
+@Composable private fun AnswerChoices(options:Map<String,String>,selected:String,onSelect:(String)->Unit){
+ Column(Modifier.selectableGroup(),verticalArrangement=Arrangement.spacedBy(12.dp)){
+  options.forEach{(id,label)->OnboardingChoice(label,selected==id){onSelect(id)}}
+ }
+}
+
+@Composable private fun OnboardingChoice(title:String,selected:Boolean,multiple:Boolean=false,description:String=title,onClick:()->Unit){
+ val selectionColor by animateColorAsState(if(selected)Mint else MaterialTheme.colorScheme.surface,animationSpec=tween(140),label="Yanıt yüzeyi")
+ Surface(
+  onClick=onClick,shape=RoundedCornerShape(topStart=16.dp,topEnd=16.dp,bottomEnd=16.dp,bottomStart=if(selected)5.dp else 16.dp),
+  color=selectionColor,
+  border=BorderStroke(1.dp,if(selected)Coral else ArcLine),
+  modifier=Modifier.fillMaxWidth().semantics{
+   this.selected=selected
+   role=if(multiple)Role.Checkbox else Role.RadioButton
+   contentDescription=description
+  }
+ ){
+  Row(Modifier.heightIn(min=58.dp).padding(horizontal=14.dp,vertical=14.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)){
+   Text(title,Modifier.weight(1f),fontSize=16.sp,lineHeight=22.sp,fontWeight=if(selected)FontWeight.SemiBold else FontWeight.Medium)
+   if(selected)Box(Modifier.size(24.dp).background(Coral,if(multiple)RoundedCornerShape(6.dp) else CircleShape),contentAlignment=Alignment.Center){Icon(ArcIcons.Check,null,tint=Paper,modifier=Modifier.size(17.dp))}
+   else Icon(if(multiple)ArcIcons.Square else ArcIcons.Circle,null,tint=MaterialTheme.colorScheme.outline,modifier=Modifier.size(24.dp))
+  }
+ }
+}
+
+@Composable private fun SaveError(){
+ Text("Kaydedilemedi. Seçimlerin burada; devam ederek tekrar dene.",fontSize=13.sp,color=MaterialTheme.colorScheme.error,modifier=Modifier.semantics{liveRegion=LiveRegionMode.Polite})
+}
+
+@Composable fun PreparationScreen(
+ answers:TrainingAnswers,elapsed:Long,onElapsed:(Long)->Unit,onBack:()->Unit,onReady:()->Unit,
+ reducedMotion:Boolean=false,saveError:Boolean=false,onCheckpoint:(Long)->Unit={}
+){
  val current by rememberUpdatedState(elapsed)
  val update by rememberUpdatedState(onElapsed)
+ val checkpoint by rememberUpdatedState(onCheckpoint)
+ val ready by rememberUpdatedState(onReady)
  val lifecycle=LocalLifecycleOwner.current.lifecycle
- val week=remember(answers){weeklyProgram(answers)}
- LaunchedEffect(answers){
-  var previous=SystemClock.elapsedRealtime()
-  while(current<PREPARATION_DURATION_MS){
-   delay(100);val now=SystemClock.elapsedRealtime()
-   if(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED))update((current+(now-previous).coerceAtMost(1000)).coerceAtMost(PREPARATION_DURATION_MS))
-   previous=now
+ var retry by remember{mutableIntStateOf(0)}
+ val result=remember(answers,retry){runCatching{require(answers.complete());weeklyProgram(answers).also{require(it.size==7)}}}
+ var lastTick by remember{mutableLongStateOf(SystemClock.elapsedRealtime())}
+ var resumed by remember{mutableStateOf(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED))}
+ DisposableEffect(lifecycle){
+  val observer=LifecycleEventObserver{_,_->
+   val now=SystemClock.elapsedRealtime()
+   val next=advancePreparation(current,now-lastTick,resumed && result.isSuccess)
+   lastTick=now
+   resumed=lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+   update(next)
+   if(!resumed)checkpoint(next)
+  }
+  lifecycle.addObserver(observer)
+  onDispose{lifecycle.removeObserver(observer)}
+ }
+ LaunchedEffect(answers,retry){
+  lastTick=SystemClock.elapsedRealtime()
+  while(current<PREPARATION_DURATION_MS && result.isSuccess){
+   delay(100)
+   val now=SystemClock.elapsedRealtime()
+   update(advancePreparation(current,now-lastTick,resumed))
+   lastTick=now
   }
  }
- LaunchedEffect(elapsed){if(elapsed>=PREPARATION_DURATION_MS)onReady()}
- PageColumn{
-  TopBar("Program hazırlanıyor",onBack)
-  Box(Modifier.fillMaxWidth().height(175.dp),contentAlignment=Alignment.Center){
-   CircularProgressIndicator(progress={elapsed.toFloat()/PREPARATION_DURATION_MS},modifier=Modifier.size(166.dp),color=Sky,strokeWidth=4.dp,trackColor=Mint)
-   Pose("sprint",Modifier.size(136.dp),Ink)
+ LaunchedEffect(elapsed,result.isSuccess){if(elapsed>=PREPARATION_DURATION_MS && result.isSuccess)ready()}
+ Column(Modifier.fillMaxSize()){
+  Row(Modifier.padding(horizontal=20.dp,vertical=8.dp)){TopBar("İlk bölüm hazırlanıyor",onBack)}
+  Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal=24.dp,vertical=12.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){
+   ArcStage("sprint",Modifier.fillMaxWidth().height(180.dp),reducedMotion)
+   LinearProgressIndicator(progress={(elapsed.toFloat()/PREPARATION_DURATION_MS).coerceIn(0f,1f)},modifier=Modifier.fillMaxWidth().height(3.dp),color=Coral,trackColor=ArcLine)
+   Text(if(result.isFailure)"Program hazırlanamadı" else preparationStage(elapsed),fontSize=25.sp,lineHeight=30.sp,fontWeight=FontWeight.Bold,modifier=Modifier.semantics{heading();liveRegion=LiveRegionMode.Polite})
+   QuietText(if(result.isFailure)"Yanıtların korunuyor. Yeniden deneyebilirsin." else "30 saniyelik program hazırlığı · "+((PREPARATION_DURATION_MS-elapsed).coerceAtLeast(0)/1000)+" sn")
+   val labels=listOf("Tercihler değerlendiriliyor","Antrenman günleri düzenleniyor","Hareket listesi oluşturuluyor","İlk hafta hazırlanıyor")
+   Column(verticalArrangement=Arrangement.spacedBy(6.dp)){labels.forEachIndexed{index,label->
+    val done=elapsed>=(index+1)*7500L
+    val active=elapsed>=index*7500L
+    Row(Modifier.fillMaxWidth().background(if(active)Mint else Paper,RoundedCornerShape(12.dp)).padding(12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
+     Icon(if(done)ArcIcons.Checked else ArcIcons.Circle,null,tint=if(active)Sky else MaterialTheme.colorScheme.outline,modifier=Modifier.size(20.dp))
+     Text(label,fontSize=14.sp,color=if(active)Ink else MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+   }}
+   QuietText("${answers.days} antrenman günü · ${answers.minutes} dk")
+   if(saveError)SaveError()
   }
-  Text(preparationStage(elapsed),fontSize=24.sp,lineHeight=28.sp,fontWeight=FontWeight.Bold)
-  QuietText("Yaklaşık 30 saniye · Sana uygun bir antrenman haftası")
-  val labels=listOf("Tercihler değerlendiriliyor","Antrenman günleri hesaplanıyor","Hareket listesi oluşturuluyor","Program düzenleniyor")
-  Column(verticalArrangement=Arrangement.spacedBy(6.dp)){labels.forEachIndexed{i,label->
-   val done=elapsed>=(i+1)*7500L;val active=elapsed>=i*7500L
-   Row(Modifier.fillMaxWidth().background(if(active)Mint else Paper,RoundedCornerShape(12.dp)).padding(12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
-    Icon(if(done)Icons.Rounded.CheckCircle else Icons.Rounded.RadioButtonUnchecked,null,tint=if(active)Sky else MaterialTheme.colorScheme.outline,modifier=Modifier.size(20.dp))
-    Text(label,fontSize=14.sp,color=if(active)Ink else MaterialTheme.colorScheme.onSurfaceVariant)
-   }
-  }}
-  QuietText(if(elapsed>=15000)"${week.count{it.training}} antrenman günü · ${answers.minutes} dk · ${focusLabel(answers.focus)}" else "Isınma, hareket ve toparlanma birlikte planlanıyor.")
+  if(result.isFailure || saveError)Column(Modifier.padding(24.dp)){
+   BigButton("Tekrar dene",{if(result.isFailure)retry++ else if(elapsed>=PREPARATION_DURATION_MS)ready() else checkpoint(elapsed)})
+  }
  }
 }
 
-@Composable private fun ProgramReady(answers:TrainingAnswers,editing:Boolean,onFinish:()->Unit,onSkip:()->Unit,onBack:()->Unit){
- val week=remember(answers){weeklyProgram(answers)}
+@Composable private fun ProgramReady(
+ answers:TrainingAnswers,editing:Boolean,onFinish:()->Unit,onSkip:()->Unit,onBack:()->Unit,saveError:Boolean=false,saving:Boolean=false
+){
+ val result=remember(answers){runCatching{weeklyProgram(answers)}}
+ val week=result.getOrNull()
+ val blocked=answers.safety!="clear"
  Column(Modifier.fillMaxSize()){
-  Row(Modifier.padding(16.dp)){TopBar("Programın hazır",onBack)}
-  Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal=24.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
-   Tag("SANA GÖRE  /  ${answers.days} GÜN",Mint,Sky)
-   Text("İlk haftan hazır.",fontSize=32.sp,lineHeight=36.sp,fontWeight=FontWeight.ExtraBold)
+  Row(Modifier.padding(horizontal=20.dp,vertical=8.dp)){TopBar("Programın hazır",onBack)}
+  Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal=24.dp,vertical=14.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
+   Eyebrow("TRAINING ARC  /  90 GÜN")
+   Text(if(editing)"Hikâyen sana uysun." else "İlk bölümün hazır.",fontSize=32.sp,lineHeight=37.sp,fontWeight=FontWeight.ExtraBold,modifier=Modifier.semantics{heading()})
+   QuietText("Haftada ${answers.days} gün · ${answers.minutes} dakika tercihinle")
    QuietText(programReason(answers))
-   WeekStrip(week,0)
-   week.filter{it.training}.forEach{d->
-    Surface(color=MaterialTheme.colorScheme.surface,shape=RoundedCornerShape(16.dp)){
-     Row(Modifier.fillMaxWidth().padding(14.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
-      Pose(d.workout.heroMove(),Modifier.size(54.dp),Ink,true)
-      Column(Modifier.weight(1f)){Text(d.workout.title,fontWeight=FontWeight.Bold);QuietText("${d.index+1}. gün · ${minutesText(d.workout.seconds)}")}
+   if(week!=null){
+    WeekStrip(week,0)
+    week.filter{it.training}.forEach{day->
+     Surface(color=MaterialTheme.colorScheme.surface,shape=RoundedCornerShape(16.dp)){
+      Row(Modifier.fillMaxWidth().padding(14.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
+       Pose(day.workout.heroMove(),Modifier.size(50.dp),Ink,true)
+       Column(Modifier.weight(1f)){
+        Text(day.workout.title,fontWeight=FontWeight.Bold,fontSize=16.sp)
+        QuietText("${day.index+1}. gün · ${minutesText(day.workout.seconds)}")
+       }
+      }
      }
     }
+   }else QuietText("Önizleme oluşturulamadı. Yanıtlarını düzenleyip tekrar dene.")
+   if(blocked)Surface(color=MaterialTheme.colorScheme.errorContainer,shape=RoundedCornerShape(14.dp)){
+    Text("Programı inceleyebilirsin. Ağrı, kısıtlama veya belirsizlik netleşmeden antrenman başlamaz.",Modifier.padding(14.dp),fontSize=14.sp,color=MaterialTheme.colorScheme.onErrorContainer)
    }
-   QuietText(sleepGuide(answers.age))
+   if(editing)QuietText("Geçmişin korunur. Bu tercihler sonraki seanslar için uygulanır.")
+   TextButton(onClick=onBack){Text("Programı düzenle")}
   }
-  Column(Modifier.padding(24.dp),verticalArrangement=Arrangement.spacedBy(8.dp),horizontalAlignment=Alignment.CenterHorizontally){
-   if(!editing)QuietText("3 günlük demo · Ücret veya otomatik yenileme yok.")
-   BigButton(if(editing)"Programımı kaydet" else "3 gün ücretsiz dene",onFinish,icon=Icons.Rounded.PlayArrow)
-   if(!editing)TextButton(onClick=onSkip){Text("Şimdilik atla")}
+  Column(Modifier.fillMaxWidth().background(Paper).padding(horizontal=24.dp,vertical=16.dp),verticalArrangement=Arrangement.spacedBy(8.dp),horizontalAlignment=Alignment.CenterHorizontally){
+   if(saveError)SaveError()
+   if(!editing && !blocked)QuietText("Demo sürümü. 3 gün / 72 saat; ücret ve otomatik yenileme yok.")
+   BigButton(
+    if(saving)"Kaydediliyor…" else if(editing)"Programımı kaydet" else if(blocked)"Programı görüntüle" else "3 gün ücretsiz dene",
+    onClick=if(blocked)onSkip else onFinish,icon=ArcIcons.Arrow,enabled=!saving && week!=null
+   )
+   if(!editing && !blocked)TextButton(onClick=onSkip,enabled=!saving && week!=null){Text("Şimdilik atla")}
   }
  }
 }

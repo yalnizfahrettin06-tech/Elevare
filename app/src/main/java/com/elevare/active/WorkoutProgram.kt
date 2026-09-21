@@ -3,39 +3,8 @@ package com.elevare.active
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
-data class ProgramDay(val index:Int,val kind:String,val workout:Workout,val training:Boolean)
-fun programReason(a:TrainingAnswers,gentle:Boolean=false):String=when{
- a.safety!="clear"->"Başlamadan önce hareket uygunluğunu bir uzmanla netleştir."
- gentle||a.sleep=="under6"->"Toparlanmaya alan açan hafif bir hafta."
- a.environment=="indoor"->"Evde güç, denge ve yoga; ekipmansız bir hafta."
- a.minutes==5->"Kısa hazırlıklarla koşu alışkanlığına ilk adım."
- a.activity=="new"->"Kısa koşular, uzun yürüyüş aralarıyla başlangıç."
- else->"Koşu günleri, güç ve toparlanma birlikte."
-}
-fun weeklyProgram(a:TrainingAnswers,gentle:Boolean=false):List<ProgramDay>{
- val scheduled=when(a.days){2->setOf(0,3);4->setOf(0,2,4,6);else->setOf(0,2,4)}
- val soft=gentle||a.sleep=="under6"||a.focus=="recovery"||a.safety!="clear"
- val level=if(a.age>=18&&a.activity=="regular")2 else if(a.activity=="new")0 else 1
- return (0..6).map{day->
-  val training=day in scheduled
-  val kind=when{
-   !training->"recovery"
-   soft->"yoga"
-   a.environment=="indoor"->if(day==0||day==4)"strength" else "yoga"
-   day==0||day==4||(a.days==2&&day==3)->if(a.minutes==5)"prep" else "run"
-   a.focus=="sleep"->"yoga"
-   else->"strength"
-  }
-  val minutes=if(training)a.minutes.takeIf{it in ProfileChoices.minutes}?:5 else 5
-  ProgramDay(day,kind,buildProgramWorkout(kind,minutes,level),training)
- }
-}
-fun todayProgram(s:UserState,today:LocalDate=LocalDate.now()):ProgramDay {
- val day=weeklyProgram(s.answers(),s.gentle)[(journeyDay(s,today)-1)%7]
- if(day.kind!="run")return day
- val last=s.sessions.filter{it.title=="Sprint intervalleri"}.mapNotNull{runCatching{LocalDate.parse(it.date)}.getOrNull()}.maxOrNull()
- return if(last!=null&&ChronoUnit.DAYS.between(last,today) in 0..1)day.copy(kind="recovery",workout=buildProgramWorkout("recovery",5,0),training=false) else day
-}
+// Kept byte-for-byte in its timing/identity contract for already saved p7 sessions.
+// New plans use buildVersionedWorkout; changing a p7 recipe would rewrite history.
 fun buildProgramWorkout(kind:String,minutes:Int,level:Int):Workout{
  require(kind in listOf("run","prep","strength","yoga","recovery"))
  require(minutes in ProfileChoices.minutes&&level in 0..2)
@@ -76,17 +45,31 @@ fun buildProgramWorkout(kind:String,minutes:Int,level:Int):Workout{
   when(kind){"run","prep"->"Koşu";"strength"->"Güç";"yoga"->"Yoga";else->"Toparlanma"},steps,if(kind=="run")0 else 1)
 }
 fun programWorkout(id:String):Workout?=runCatching{
- val parts=id.split("_");require(parts.size==4&&parts[0]=="p7")
- buildProgramWorkout(parts[1],parts[2].toInt(),parts[3].toInt())
+ val parts=id.split("_");require(parts.size==4)
+ val workout=when(parts[0]){
+  "p7"->buildProgramWorkout(parts[1],parts[2].toInt(),parts[3].toInt())
+  "p8"->buildVersionedWorkout(parts[1],parts[2].toInt(),parts[3].toInt())
+  else->error("Unknown program version")
+ }
+ require(workout.id==id)
+ workout
 }.getOrNull()
 fun Workout.hasSprint()=steps.any{it.moveId=="sprint"}
-fun Workout.heroMove()=when{hasSprint()->"sprint";category=="Yoga"->"lunge";category=="Güç"->"squat";id=="breath"->"breath";else->"walk"}
-fun Workout.intervalSeconds()=if(!hasSprint())0 else steps.filter{it.moveId=="sprint"||it.rest}.sumOf{it.seconds}
+fun Workout.heroMove()=when{
+ hasSprint()->"sprint"
+ category=="Yoga"->steps.firstOrNull{it.moveId in setOf("catcow","child","lunge")}?.moveId?:"walk"
+ category=="Güç"->steps.firstOrNull{it.moveId in setOf("squat","wall","calf","balance")}?.moveId?:"walk"
+ steps.all{it.moveId=="breath"}->"breath"
+ else->"walk"
+}
+fun Workout.intervalSeconds()=steps.mapIndexed{i,step->
+ if(step.moveId=="sprint")step.seconds+(steps.getOrNull(i+1)?.takeIf{it.rest&&it.moveId=="walk"}?.seconds?:0) else 0
+}.sum()
 fun Workout.intervalCount()=steps.count{it.moveId=="sprint"}
 fun Workout.dayBrief()=if(hasSprint())"${intervalSeconds()/60} dk interval · ${intervalCount()} tur" else when(category){"Yoga"->"Nefesle birlikte yavaş geçişler";"Güç"->"Güç · denge · kontrol";else->"Rahat tempo · toparlanma"}
 fun advanceSession(s:UserState,now:Long=System.currentTimeMillis()):UserState{
  val a=s.active?:return s
- val w=Content.workout(a.workoutId)
+ val w=activeWorkout(a)
  if(!a.running||remaining(a,now)>0||a.step>=w.steps.lastIndex)return s
  val next=w.steps[a.step+1]
  return s.copy(active=a.copy(step=a.step+1,elapsed=a.elapsed+w.steps[a.step].seconds,remaining=next.seconds,deadline=now+next.seconds*1000L))

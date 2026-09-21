@@ -5,3 +5,5 @@ app/build/
 local.properties
 *.jks
 *.keystore
+# Historical unused raster people, deliberately excluded from line-art releases.
+app/src/main/res/drawable-nodpi/

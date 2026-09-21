@@ -10,8 +10,8 @@ android {
         applicationId = "com.elevare.active"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "0.7.0"
+        versionCode = 10
+        versionName = "0.10.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true }
@@ -28,6 +28,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.6.2")
     debugImplementation("androidx.compose.ui:ui-tooling")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20240303")
     androidTestImplementation("androidx.test:runner:1.6.1")
     androidTestImplementation("androidx.test:core:1.6.1")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")

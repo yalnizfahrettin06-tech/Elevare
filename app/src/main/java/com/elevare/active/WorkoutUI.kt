@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import java.time.LocalDate
@@ -20,28 +21,31 @@ import java.util.Locale
   week.forEach{d->
    val selected=d.index==current
    val label=start?.plusDays(d.index.toLong())?.format(DateTimeFormatter.ofPattern("EE",Locale.forLanguageTag("tr")))?:("${d.index+1}")
-   Column(Modifier.weight(1f).background(if(selected)Mint else Color.Transparent,RoundedCornerShape(12.dp)).padding(vertical=9.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(6.dp)){
+   Column(Modifier.weight(1f).heightIn(min=48.dp).background(if(selected)Mint else Color.Transparent,RoundedCornerShape(12.dp)).padding(vertical=9.dp).clearAndSetSemantics{
+    this.selected=selected
+    contentDescription="${d.day}. gün. "+(if(d.training)"Antrenman günü." else "Dinlenme günü.")+(if(selected)" Bugün." else "")
+   },horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(6.dp)){
     Text(label,fontSize=11.sp,color=if(selected)Ink else MaterialTheme.colorScheme.onSurfaceVariant,fontWeight=FontWeight.Bold)
     Box(Modifier.size(6.dp).background(if(d.kind=="run")Coral else if(d.training)Sky else MaterialTheme.colorScheme.outlineVariant,CircleShape))
    }
   }
  }
 }
+@OptIn(ExperimentalLayoutApi::class)
 @Composable fun WorkoutHero(w:Workout,reduced:Boolean=false,label:String="BUGÜNÜN ANTRENMANI",button:String="Antrenmana başla",onStart:()->Unit,onGuide:()->Unit){
- Surface(shape=RoundedCornerShape(24.dp),color=Track,border=BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant)){
-  Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
-   Row(verticalAlignment=Alignment.CenterVertically){Text(label,Modifier.weight(1f),fontSize=10.sp,letterSpacing=1.1.sp,color=Sky,fontWeight=FontWeight.Bold);Icon(Icons.Rounded.Bolt,null,tint=Coral,modifier=Modifier.size(20.dp))}
-   Row(verticalAlignment=Alignment.CenterVertically){
-    Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(8.dp)){
-     Text(w.title,fontSize=24.sp,lineHeight=28.sp,fontWeight=FontWeight.ExtraBold)
-     Text(minutesText(w.seconds),fontSize=20.sp,color=Coral,fontWeight=FontWeight.Bold)
-    }
-    Pose(w.heroMove(),Modifier.size(100.dp),Ink,reduced)
+ Surface(shape=RoundedCornerShape(topStart=26.dp,topEnd=26.dp,bottomEnd=26.dp,bottomStart=8.dp),color=Track,border=BorderStroke(1.dp,ArcLine)){
+  Column(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
+   Row(verticalAlignment=Alignment.CenterVertically){Text(label,Modifier.weight(1f),fontSize=10.sp,letterSpacing=1.3.sp,color=Sky,fontWeight=FontWeight.Bold);Icon(ArcIcons.Mark,null,tint=Coral,modifier=Modifier.size(22.dp))}
+   ArcStage(w.heroMove(),Modifier.fillMaxWidth().height(172.dp),reduced)
+   Text(w.title,fontSize=27.sp,lineHeight=32.sp,fontWeight=FontWeight.ExtraBold,letterSpacing=(-.6).sp)
+   FlowRow(horizontalArrangement=Arrangement.spacedBy(18.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
+    StatPill(ArcIcons.Clock,minutesText(w.seconds))
+    StatPill(ArcIcons.Run,"${w.movementCount} hareket")
    }
-   BigButton(button,onStart,icon=Icons.Rounded.PlayArrow)
+   BigButton(button,onStart,icon=ArcIcons.Play)
    Row(verticalAlignment=Alignment.CenterVertically){
-    Text(w.dayBrief(),Modifier.weight(1f),fontSize=12.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
-    TextButton(onClick=onGuide){Text(if(w.hasSprint())"Sprint nedir?" else "Hareketleri gör",fontSize=12.sp)}
+    Text("Isınma ve toparlanma dahil",Modifier.weight(1f),fontSize=11.sp,lineHeight=16.sp,color=ArcMuted)
+    TextButton(onClick=onGuide){Text(if(w.hasSprint())"Sprint nedir?" else "Seansı incele",fontSize=12.sp)}
    }
   }
  }
@@ -52,7 +56,7 @@ import java.util.Locale
    Row(Modifier.fillMaxWidth().padding(14.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
     Column(horizontalAlignment=Alignment.CenterHorizontally){Text("${d.index+1}",fontSize=20.sp,fontWeight=FontWeight.Bold);Text("GÜN",fontSize=9.sp,color=Sky)}
     Column(Modifier.weight(1f)){Text(d.workout.title,fontSize=15.sp,fontWeight=FontWeight.Bold);QuietText(if(d.training)minutesText(d.workout.seconds) else "Dinlenme günü · İstersen 5 dk")}
-    Icon(if(d.kind=="run")Icons.Rounded.DirectionsRun else if(d.training)Icons.Rounded.FitnessCenter else Icons.Rounded.Bedtime,null,tint=if(d.kind=="run")Coral else Sky,modifier=Modifier.size(22.dp))
+    Icon(if(d.kind=="run")ArcIcons.Run else if(d.training)ArcIcons.Strength else ArcIcons.Moon,null,tint=if(d.kind=="run")Coral else Sky,modifier=Modifier.size(22.dp))
    }
   }
  }

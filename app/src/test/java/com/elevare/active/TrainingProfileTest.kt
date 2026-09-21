@@ -3,10 +3,10 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class TrainingProfileTest {
- private val valid=TrainingAnswers(18,"performance","unknown","8to10","regular",10,"clear","outdoor",3)
+ private val valid=TrainingAnswers(18,"performance","unknown","8to10","regular",10,"clear","outdoor",3,"interval",setOf("none"))
  @Test fun everyAnswerRequired(){
   assertTrue(valid.complete())
-  listOf(valid.copy(age=0),valid.copy(focus=""),valid.copy(recentGrowth=""),valid.copy(sleep=""),valid.copy(activity=""),valid.copy(minutes=0),valid.copy(safety=""),valid.copy(environment=""),valid.copy(days=0)).forEach{assertFalse(it.complete())}
+  listOf(valid.copy(age=0),valid.copy(focus=""),valid.copy(recentGrowth=""),valid.copy(sleep=""),valid.copy(activity=""),valid.copy(minutes=0),valid.copy(safety=""),valid.copy(environment=""),valid.copy(days=0),valid.copy(runningExperience=""),valid.copy(equipment=emptySet())).forEach{assertFalse(it.complete())}
  }
  @Test fun ageAndTimeBounds(){
   (13..21).forEach{assertTrue(valid.copy(age=it).complete())}
@@ -17,7 +17,8 @@ class TrainingProfileTest {
  @Test fun unknownDoesNotInventMedicalData(){assertTrue(valid.copy(recentGrowth="unknown",sleep="unknown",safety="unknown").complete());assertTrue(routinePlan(valid.copy(safety="unknown")).blocked)}
  @Test fun safetyStopsSessions(){
   listOf("","pain","restricted","unknown").forEach{val s=UserState(safety=it);assertEquals(s,beginWorkout(s,"runprep"))}
-  assertNotNull(beginWorkout(UserState(safety="clear"),"runprep").active)
+  val completedProfile=completeOnboarding(UserState(),valid.copy(equipment=setOf("wall")),false)
+  assertNotNull(beginWorkout(completedProfile,buildVersionedWorkout("P",5).id).active)
  }
  @Test fun discomfortBlocksNextSession(){
   val a=ActiveSession("breath",remaining=0,running=false)
@@ -25,14 +26,96 @@ class TrainingProfileTest {
   assertEquals("pain",s.safety);assertFalse(trainingAllowed(s));assertEquals(s,beginWorkout(s,"flow"))
  }
  @Test fun recommendationsRespondToAnswers(){
-  assertTrue(Content.workout(routinePlan(valid).workoutId).hasSprint())
+  assertFalse(Content.workout(routinePlan(valid).workoutId).hasSprint())
   assertFalse(Content.workout(routinePlan(valid.copy(minutes=5)).workoutId).hasSprint())
-  assertEquals("Yoga",Content.workout(routinePlan(valid.copy(sleep="under6")).workoutId).category)
-  assertEquals("Yoga",Content.workout(routinePlan(valid,true).workoutId).category)
+  assertFalse(Content.workout(routinePlan(valid.copy(sleep="under6")).workoutId).hasSprint())
+  assertFalse(Content.workout(routinePlan(valid,true).workoutId).hasSprint())
   for(minutes in ProfileChoices.minutes)for(focus in ProfileChoices.focus.keys){
    val p=routinePlan(valid.copy(minutes=minutes,focus=focus))
    assertEquals(minutes*60,Content.workout(p.workoutId).seconds)
   }
+ }
+
+ @Test fun equipmentIsExplicitAndNoneIsExclusive(){
+  assertTrue(validEquipment(setOf("none")))
+  assertTrue(validEquipment(setOf("chair","wall","mat")))
+  assertFalse(validEquipment(emptySet()))
+  assertFalse(validEquipment(setOf("none","mat")))
+  assertFalse(validEquipment(setOf("treadmill")))
+  assertEquals(setOf("none"),toggleEquipment(setOf("wall","mat"),"none"))
+  assertEquals(setOf("mat"),toggleEquipment(setOf("none"),"mat"))
+  assertEquals(emptySet<String>(),toggleEquipment(setOf("mat"),"mat"))
+ }
+ @Test fun privateGrowthAnswerIsValidAndNotATrainingInput(){
+  val privateAnswers=valid.copy(recentGrowth="private")
+  assertTrue(privateAnswers.complete())
+  assertEquals(routinePlan(valid),routinePlan(privateAnswers))
+ }
+ @Test fun questionOrderAndCountMatchRequiredInputs(){
+  assertEquals(11,ONBOARDING_QUESTION_COUNT)
+  assertEquals(12,PREPARATION_STEP)
+  assertEquals(13,PROGRAM_READY_STEP)
+  (1..11).forEach{assertFalse(onboardingStepValid(TrainingAnswers(),it));assertTrue(onboardingStepValid(valid,it))}
+  assertFalse(onboardingStepValid(valid.copy(runningExperience=""),4))
+  assertFalse(onboardingStepValid(valid.copy(equipment=emptySet()),6))
+  assertFalse(onboardingStepValid(valid.copy(minutes=0),8))
+  assertFalse(onboardingStepValid(valid.copy(recentGrowth=""),10))
+ }
+ @Test fun draftsRestoreWithoutSkippingQuestions(){
+  val unfinished=OnboardingDraft(valid.copy(equipment=emptySet()),13,30000).restored()
+  assertEquals(6,unfinished.step)
+  assertEquals(0L,unfinished.preparingElapsedMs)
+  assertEquals(12,OnboardingDraft(valid,13,12000).restored().step)
+  assertEquals(12000L,OnboardingDraft(valid,12,12000).restored().preparingElapsedMs)
+  assertEquals(30000L,OnboardingDraft(valid,12,999999).restored().preparingElapsedMs)
+  assertEquals(0,OnboardingDraft(valid,-4,-10).restored().step)
+  assertEquals(0L,OnboardingDraft(valid,12,12000,7).restored().preparingElapsedMs)
+ }
+ @Test fun preparationCountsForegroundTimeOnly(){
+  assertEquals(5000L,advancePreparation(5000,45000,false))
+  assertEquals(7500L,advancePreparation(7400,100,true))
+  assertEquals(30000L,advancePreparation(29900,1000,true))
+  assertEquals(1200L,advancePreparation(1200,-500,true))
+ }
+ @Test fun completingSetupStartsOneDemoOnly(){
+  val today=java.time.LocalDate.of(2026,9,8)
+  val before=UserState(onboardingDraft=OnboardingDraft(valid,13,30000))
+  val first=completeOnboarding(before,valid,true,1000L,today)
+  assertTrue(first.ready)
+  assertNull(first.onboardingDraft)
+  assertEquals(8,first.onboardingVersion)
+  assertEquals(1000L,first.demoStartedAt)
+  assertEquals(3,first.trialDays)
+  assertEquals(today.toString(),first.start)
+  val repeated=completeOnboarding(first,valid,true,9999L,today.plusDays(1))
+  assertEquals(first,repeated)
+ }
+ @Test fun skippedOrBlockedSetupDoesNotStartDemo(){
+  assertEquals(0L,completeOnboarding(UserState(),valid,false,1000).demoStartedAt)
+  listOf("pain","restricted","unknown").forEach{value->
+   val completed=completeOnboarding(UserState(),valid.copy(safety=value),true,1000)
+   assertTrue(completed.ready)
+   assertEquals(0L,completed.demoStartedAt)
+   assertFalse(trainingAllowed(completed))
+  }
+ }
+ @Test fun incompleteSetupCannotOverwriteUserState(){
+  val original=UserState(name="Deniz")
+  assertEquals(original,completeOnboarding(original,valid.copy(runningExperience=""),true,1000))
+ }
+ @Test fun profileRevisionPreservesCyclePauseActiveAndHistory(){
+  val existing=UserState(ready=true,start="2026-08-01",onboardingVersion=8,pausedDays=3,pausedOn="2026-09-07",active=ActiveSession("breath"),done=mapOf("2026-09-01" to setOf("runprep")),trialDays=3,demoStartedAt=1000L)
+  val changed=completeOnboarding(existing,valid.copy(minutes=30,environment="indoor"),true,9999)
+  assertEquals(existing.start,changed.start)
+  assertEquals(existing.cycleId,changed.cycleId)
+  assertEquals(existing.pausedDays,changed.pausedDays)
+  assertEquals(existing.pausedOn,changed.pausedOn)
+  assertEquals(existing.active,changed.active)
+  assertEquals(existing.sessions,changed.sessions)
+  assertEquals(existing.done,changed.done)
+  assertEquals(existing.demoStartedAt,changed.demoStartedAt)
+  assertEquals(30,changed.dailyMinutes)
+  assertEquals("indoor",changed.environment)
  }
 
  @Test fun ageAppropriateSleep(){assertTrue(sleepGuide(17).contains("8–10"));assertTrue(sleepGuide(18).contains("7–9"))}

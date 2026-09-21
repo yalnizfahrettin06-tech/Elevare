@@ -2,9 +2,10 @@ package com.elevare.active
 import org.junit.Assert.*
 import org.junit.Test
 class GrowthTest{
- @Test fun onlyThreeDayTrial(){assertEquals(3,TRIAL_DAYS);assertEquals(3,normalizeTrialDays(7));assertEquals(3,normalizeTrialDays(3));assertEquals(0,normalizeTrialDays(0));assertEquals(0,normalizeTrialDays(-1));assertEquals(12,ONBOARDING_STEPS)}
- @Test fun quickStart(){val s=beginWorkout(UserState(safety="clear"),"runprep",1000);assertEquals("runprep",s.active!!.workoutId);assertEquals(61000L,s.active!!.deadline);assertEquals(60,s.active!!.remaining)}
- @Test fun quickStartPreservesExistingSession(){val first=beginWorkout(UserState(safety="clear"),"runprep");assertEquals(first,beginWorkout(first,"breath"))}
+ private fun validState()=UserState(ready=true,age=17,focus="performance",recentGrowth="unknown",sleepHabit="8to10",activityHabit="new",dailyMinutes=5,safety="clear",environment="indoor",trainingDays=3,runningExperience="new",equipment=setOf("none"))
+ @Test fun onlyThreeDayTrial(){assertEquals(3,TRIAL_DAYS);assertEquals(3,normalizeTrialDays(7));assertEquals(3,normalizeTrialDays(3));assertEquals(0,normalizeTrialDays(0));assertEquals(0,normalizeTrialDays(-1));assertEquals(11,ONBOARDING_STEPS)}
+ @Test fun quickStart(){val w=buildVersionedWorkout("P",5);val clockDate=java.time.Instant.ofEpochMilli(1000).atZone(java.time.ZoneId.systemDefault()).toLocalDate();val s=beginWorkout(validState().copy(start=clockDate.toString()),w.id,1000);assertEquals(w.id,s.active!!.workoutId);assertEquals(51000L,s.active!!.deadline);assertEquals(50,s.active!!.remaining)}
+ @Test fun quickStartPreservesExistingSession(){val first=beginWorkout(validState(),buildVersionedWorkout("P",5).id);assertNotNull(first.active);assertEquals(first,beginWorkout(first,"breath"))}
  @Test fun pausedPlanCannotStart(){val paused=UserState(safety="clear",pausedOn=java.time.LocalDate.now().toString());assertEquals(paused,beginWorkout(paused,"runprep"));assertNull(resumePlan(paused).pausedOn)}
  @Test fun unknownWorkoutDoesNotStart(){val s=UserState(safety="clear");assertEquals(s,beginWorkout(s,"missing"))}
  @Test fun optionalHeights(){assertTrue(validHeight(""));assertTrue(validHeight("175"));assertFalse(validHeight("0"));assertFalse(validHeight("abc"));assertFalse(validHeight("999"))}

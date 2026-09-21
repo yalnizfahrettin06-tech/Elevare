@@ -19,8 +19,8 @@ class WorkoutProgramTest {
    (0..6).forEach{i->assertFalse(week[i].workout.hasSprint()&&week[(i+1)%7].workout.hasSprint())}
   }
  }
- @Test fun runningHasWarmupAndActualRecoveries(){
-  val w=weeklyProgram(a).first().workout
+ @Test fun legacyRunningHasUnchangedWarmupAndActualRecoveries(){
+  val w=buildProgramWorkout("run",15,2)
   assertEquals(300,w.steps.take(3).sumOf{it.seconds})
   assertEquals(6,w.intervalCount())
   w.steps.forEachIndexed{i,step->if(step.moveId=="sprint"){assertTrue(step.seconds in 10..20);assertTrue(w.steps[i+1].rest);assertEquals(60,step.seconds+w.steps[i+1].seconds)}}
@@ -30,9 +30,9 @@ class WorkoutProgramTest {
   listOf(a.copy(sleep="under6"),a.copy(safety="pain"),a.copy(safety="unknown"),a.copy(focus="recovery")).forEach{answer->assertFalse(weeklyProgram(answer).any{it.workout.hasSprint()})}
   assertFalse(weeklyProgram(a,true).any{it.workout.hasSprint()})
  }
- @Test fun beginnerIntervalsAreShorter(){
-  val adult=weeklyProgram(a).first().workout.steps.first{it.moveId=="sprint"}.seconds
-  val young=weeklyProgram(a.copy(age=13,activity="new")).first().workout.steps.first{it.moveId=="sprint"}.seconds
+ @Test fun legacyRecipeLevelsKeepTheirSavedDurations(){
+  val adult=buildProgramWorkout("run",15,2).steps.first{it.moveId=="sprint"}.seconds
+  val young=buildProgramWorkout("run",15,0).steps.first{it.moveId=="sprint"}.seconds
   assertTrue(young<adult)
  }
  @Test fun sessionIdentitySurvivesAnswerChanges(){
