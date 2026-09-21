@@ -31,6 +31,9 @@ class WorkoutJourneyTest {
     private fun find(text:String):UiObject2?=
         device.findObject(By.text(text))?:device.findObject(By.desc(text))
     private fun node(text:String):UiObject2{
+        // Await destination composition before scrolling; a late frame is not an offscreen item.
+        device.wait(Until.hasObject(By.text(text)),1500)
+        find(text)?.let{return it}
         repeat(7){
             find(text)?.let{return it}
             device.swipe(device.displayWidth/2,device.displayHeight*72/100,
@@ -110,7 +113,7 @@ class WorkoutJourneyTest {
             assertFalse(device.hasObject(By.text("3 gün ücretsiz dene")))
             shot("07-home")
 
-            click("Rutinim");click("90 günlük antrenman planı");click("Hareketler");click("Kontrollü hızlan")
+            click("Rutinim");click("90 günlük antrenman planı");shot("07b-program-tabs");click("Hareketler");click("Kontrollü hızlan")
             assertTrue(device.wait(Until.hasObject(By.text("Yavaş göster")),6000))
             shot("08-running-guide")
             device.executeShellCommand("screenrecord --time-limit 8 /sdcard/Android/data/com.elevare.active/files/qa/running-normal.mp4")

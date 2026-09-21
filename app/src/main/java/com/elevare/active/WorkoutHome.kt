@@ -139,6 +139,7 @@ import java.util.Locale
  }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable fun ProgramBrowser(s:UserState,onMove:(String)->Unit,onWorkout:(String)->Unit,onBack:(()->Unit)?=null,onEdit:()->Unit={}) {
  var section by rememberSaveable{mutableStateOf("Bu hafta")}
  var selectedWeek by rememberSaveable{mutableIntStateOf((journeyDay(s)-1)/7)}
@@ -153,7 +154,7 @@ import java.util.Locale
   ArcChapterStrip(day,scheduled)
   if(scheduled)QuietText("Başlangıç · ${LocalDate.parse(s.start).format(DateTimeFormatter.ofPattern("d MMMM EEEE",Locale.forLanguageTag("tr")))}")
   QuietText("${programPhase(day).title} · Haftada ${s.trainingDays} gün · ${s.dailyMinutes} dakika")
-  Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)){
+  FlowRow(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)){
    listOf("Bu hafta","90 gün","Hareketler").forEach{label->FilterChip(section==label,{section=label},label={Text(label)})}
   }
   when(section) {
