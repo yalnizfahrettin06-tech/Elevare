@@ -39,14 +39,17 @@ import java.util.Locale
    Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
     Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(8.dp)){
      Text(w.title,fontSize=24.sp,lineHeight=28.sp,fontWeight=FontWeight.ExtraBold,letterSpacing=(-.6).sp)
-     Text("${minutesText(w.seconds)} · ${w.movementCount} hareket",color=Sky,fontSize=14.sp)
+     FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){
+      Text(minutesText(w.seconds),color=Sky,fontSize=14.sp)
+      Text("· ${w.movementCount} hareket",color=Sky,fontSize=14.sp)
+     }
     }
-    ArcStage(w.heroMove(),Modifier.size(86.dp),reduced,decorated=false)
+    Pose(w.heroMove(),Modifier.size(96.dp),Ink,reduced)
    }
 
    BigButton(button,onStart,icon=ArcIcons.Play)
    Row(verticalAlignment=Alignment.CenterVertically){
-    Text("Hazırlık akışı",Modifier.weight(1f),fontSize=12.sp,color=ArcMuted)
+    Text(if(w.id=="breath")"Rahat nefes" else if(w.hasSprint())"Koşu aralıkları" else "Hazırlık akışı",Modifier.weight(1f),fontSize=12.sp,color=ArcMuted)
     TextButton(onClick=onGuide){Text(if(w.hasSprint())"Sprint nedir?" else "Seansı incele",fontSize=12.sp)}
    }
   }

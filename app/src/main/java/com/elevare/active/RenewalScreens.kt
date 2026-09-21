@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.ui.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.*
@@ -64,9 +65,13 @@ import java.time.LocalDate
  }
 }
 
+private val TrainingAnswersSaver=listSaver<TrainingAnswers,String>(
+ save={listOf(it.age.toString(),it.focus,it.recentGrowth,it.sleep,it.activity,it.minutes.toString(),it.safety,it.environment,it.days.toString(),it.runningExperience,it.equipment.sorted().joinToString(","))},
+ restore={TrainingAnswers(it[0].toIntOrNull()?:0,it[1],it[2],it[3],it[4],it[5].toIntOrNull()?:0,it[6],it[7],it[8].toIntOrNull()?:0,it[9],it[10].split(",").filter{key->key.isNotBlank()}.toSet())})
+
 @Composable fun PlanStudio(store:Store,onBack:()->Unit){
  val s=store.state
- var draft by remember(s.age,s.focus,s.dailyMinutes,s.trainingDays,s.environment,s.equipment,s.safety){mutableStateOf(s.answers())}
+ var draft by rememberSaveable(s.answers(),stateSaver=TrainingAnswersSaver){mutableStateOf(s.answers())}
  var field by rememberSaveable{mutableStateOf("")}
  var confirm by remember{mutableStateOf(false)}
  var saved by remember{mutableStateOf(false)}
@@ -75,15 +80,18 @@ import java.time.LocalDate
  PageColumn{
   TopBar("Plan atölyesi",onBack)
   Eyebrow("SENİN HAFTAN · SENİN KARARIN")
-  Text("Hayat değişir.\nPlanın uyum sağlar.",style=MaterialTheme.typography.headlineLarge)
-  QuietText("Yalnız değiştirmek istediğin tercihe dokun. Kaydedene kadar mevcut planın korunur.")
+  Text("Planını yeniden düzenle.",style=MaterialTheme.typography.headlineMedium)
+  QuietText("Tercihini değiştir, haftanı önizle, onayla.")
   listOf("minutes" to "Seans süresi: ${draft.minutes} dk","days" to "Haftalık ritim: ${draft.days} gün",
    "environment" to "Alan: ${ProfileChoices.environment[draft.environment]}","focus" to "Odak: ${focusLabel(draft.focus)}",
-   "equipment" to "Destekler: ${draft.equipment.mapNotNull{ProfileChoices.equipment[it]}.joinToString()}",
-   "safety" to "Hareket uygunluğu", "age" to "Yaş: ${draft.age}","activity" to "Aktivite düzenim",
-   "running" to "Koşu deneyimim","sleep" to "Uyku düzenim","growth" to "Büyüme gözlemim").forEach{(id,label)->
+   "equipment" to "Destekler: ${draft.equipment.mapNotNull{ProfileChoices.equipment[it]}.joinToString()}").forEach{(id,label)->
+    MenuRow(label,icon=ArcIcons.Settings){field=id;saved=false}
+   }
+  ExpandSection("Diğer yanıtlarım",ArcIcons.Person){
+   listOf("safety" to "Hareket uygunluğu","age" to "Yaş: ${draft.age}","activity" to "Aktivite düzenim","running" to "Koşu deneyimim","sleep" to "Uyku düzenim","growth" to "Büyüme gözlemim").forEach{(id,label)->
     MenuRow(label,icon=if(id=="safety")ArcIcons.Shield else ArcIcons.Settings){field=id;saved=false}
    }
+  }
   Surface(color=Mint,shape=RoundedCornerShape(18.dp)){
    Column(Modifier.fillMaxWidth().padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
     Eyebrow("KAYDETMEDEN ÖNCE")

@@ -28,6 +28,10 @@ jobs:
       - name: Verify source
         shell: pwsh
         run: ./scripts/verify-source.ps1
+      - name: Design and editorial inventory
+        run: |
+          node scripts/verify-arc.mjs
+          node scripts/editorial-audit.mjs > editorial-inventory.md
       - name: Build and test
         run: bash gradlew :app:assembleDebug :app:testDebugUnitTest :app:assembleDebugAndroidTest --no-daemon --max-workers=2
       - name: Debug APK
@@ -57,6 +61,7 @@ jobs:
         with:
           name: Elevare-0.13.0-verification-api${{ inputs.api }}
           path: |
+            editorial-inventory.md
             device-qa/
             app/build/reports/
             app/build/outputs/androidTest-results/

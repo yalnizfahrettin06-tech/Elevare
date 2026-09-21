@@ -32,11 +32,8 @@ fun slotLabel(slot:String)=when(slot){"morning"->"Sabah";"day"->"Gün içinde";e
  var undo by remember{mutableStateOf<Triple<String,String,LocalDate>?>(null)}
  if(!life.welcomed){
   Surface(color=Track,shape=RoundedCornerShape(18.dp),border=BorderStroke(1.dp,ArcLine)){
-   Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
-    Eyebrow("ANTRENMANIN ÖTESİNDE")
-    Text("Gününe küçük bir ritim ekle.",fontWeight=FontWeight.Bold,fontSize=18.sp)
-    QuietText("Sabah, akşam veya sana uyan bir alışkanlık. Seçim senin.")
-    FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){
+   Column(Modifier.padding(horizontal=10.dp,vertical=4.dp)){
+    FlowRow(horizontalArrangement=Arrangement.spacedBy(4.dp)){
      TextButton(onClick=onHub){Text("Rutinlerimi seç")}
      TextButton(onClick={store.update{it.copy(life=it.life.copy(welcomed=true))}}){Text("Sadece antrenman")}
     }

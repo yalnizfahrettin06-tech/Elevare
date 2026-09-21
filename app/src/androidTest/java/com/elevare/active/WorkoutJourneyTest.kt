@@ -264,6 +264,16 @@ class WorkoutJourneyTest {
         }
     }
 
+    @Test fun modernNotificationPermissionCanBeDeniedAndRestored(){
+        if(android.os.Build.VERSION.SDK_INT<33)return
+        try{
+            device.executeShellCommand("pm revoke com.elevare.active android.permission.POST_NOTIFICATIONS")
+            assertFalse(Reminder.allowed(context))
+            device.executeShellCommand("pm grant com.elevare.active android.permission.POST_NOTIFICATIONS")
+            assertTrue(Reminder.allowed(context))
+        }finally{device.executeShellCommand("pm revoke com.elevare.active android.permission.POST_NOTIFICATIONS")}
+    }
+
     @Test fun storageMeasurementsAndRestoreRollback(){
         clear()
         val dir=File(context.getExternalFilesDir(null),"qa").apply{mkdirs()}

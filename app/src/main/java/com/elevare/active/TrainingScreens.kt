@@ -294,7 +294,7 @@ import java.time.LocalDate
         confirmButton={TextButton(onClick={
             val saved=store.update{state->
                 val partial=abandonSessionRuntime(state)
-                if(stopForDiscomfort)partial.copy(safety="pain",gentle=true,
+                if(stopForDiscomfort)partial.copy(dailyReadiness="pain",dailyCheckDate=LocalDate.now().toString(),gentle=true,
                     sessions=partial.sessions.map{if(it.id==a.id)it.copy(feeling="Rahatsızlık")else it}) else partial
             }
             if(saved){audio.stop();stop=false;onClose()}else saveError=true
