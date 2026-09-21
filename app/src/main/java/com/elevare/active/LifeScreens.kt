@@ -26,6 +26,7 @@ fun slotLabel(slot:String)=when(slot){"morning"->"Sabah";"day"->"Gün içinde";e
 
 @Composable fun LifeHomeSupport(store:Store,onRoutine:(String)->Unit,onHub:()->Unit){
  val life=store.state.life;val now=LocalDateTime.now();val visible=visibleRoutines(life,now.toLocalDate(),now.hour)
+ var undo by remember{mutableStateOf<Triple<String,String,LocalDate>?>(null)}
  if(!life.welcomed){
   Surface(color=Track,shape=RoundedCornerShape(18.dp),border=BorderStroke(1.dp,ArcLine)){
    Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
@@ -41,11 +42,17 @@ fun slotLabel(slot:String)=when(slot){"morning"->"Sabah";"day"->"Gün içinde";e
  }else if(visible.isNotEmpty()){
   Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
    BlockTitle("Ritmini destekle","Tümü",onHub)
-   visible.forEach{p->RoutineRow(p,life,now.toLocalDate()){onRoutine(p.id)}}
+   visible.forEach{p->
+    val pending=LifeCatalog.find(p.id)?.steps?.firstOrNull{routineStatus(life,p.id,it.id,now.toLocalDate())==null}
+    RoutineRow(p,life,now.toLocalDate(),quickLabel=pending?.let{"${it.title}: yaptım"},onQuick={
+     if(pending!=null&&store.update{it.copy(life=recordRoutine(it.life,p.id,pending.id,"done",now.toLocalDate()))})undo=Triple(p.id,pending.id,now.toLocalDate())
+    }){onRoutine(p.id)}
+   }
+   undo?.let{(id,step,date)->TextButton(onClick={if(store.update{it.copy(life=recordRoutine(it.life,id,step,null,date))})undo=null}){Text("Son işaretlemeyi geri al")}}
   }
  }
 }
-@Composable private fun RoutineRow(p:LifeRoutinePlan,life:LifeState,date:LocalDate,onOpen:()->Unit){
+@Composable private fun RoutineRow(p:LifeRoutinePlan,life:LifeState,date:LocalDate,quickLabel:String?=null,onQuick:()->Unit={},onOpen:()->Unit){
  val t=LifeCatalog.find(p.id)?:return
  val done=routineDoneCount(life,p.id,date);val finished=routineRecorded(life,p.id,date)
  Surface(onClick=onOpen,color=Track,shape=RoundedCornerShape(16.dp),modifier=Modifier.fillMaxWidth()){
@@ -53,9 +60,10 @@ fun slotLabel(slot:String)=when(slot){"morning"->"Sabah";"day"->"Gün içinde";e
    Icon(routineIcon(p.id),null,tint=if(finished)ArcMuted else Coral,modifier=Modifier.size(23.dp))
    Column(Modifier.weight(1f)){
     Text(t.title,fontSize=15.sp,fontWeight=FontWeight.SemiBold)
-    Text(if(!p.enabled)"Kapalı" else if(finished)"$done / ${t.steps.size} adım yapıldı" else "${p.time} · ${t.steps.size} küçük adım",fontSize=12.sp,color=ArcMuted)
+    Text(if(!p.enabled)"Kapalı" else if(finished&&done==0)"Bugün atlandı" else if(finished&&done<t.steps.size)"$done yapıldı · ${t.steps.size-done} atlandı" else if(finished)"Tamamlandı" else "${p.time} · $done / ${t.steps.size} adım",fontSize=12.sp,color=ArcMuted)
    }
-   Icon(if(finished)ArcIcons.Checked else ArcIcons.Chevron,null,tint=Sky,modifier=Modifier.size(20.dp))
+   if(quickLabel!=null)IconButton(onClick=onQuick){Icon(ArcIcons.Circle,quickLabel,tint=Coral)}
+   else Icon(if(finished&&done==t.steps.size)ArcIcons.Checked else if(finished)ArcIcons.Next else ArcIcons.Chevron,null,tint=Sky,modifier=Modifier.size(20.dp))
   }
  }
 }
@@ -66,8 +74,10 @@ fun slotLabel(slot:String)=when(slot){"morning"->"Sabah";"day"->"Gün içinde";e
  var review by rememberSaveable{mutableStateOf(false)}
  PageColumn{
   TopBar("elevare",action={IconButton(onClick=onProfile){Icon(ArcIcons.Person,"Profil")}})
-  ArcSectionLead("KENDİ RİTMİNİ KUR","Az ama sana göre.","Antrenmanın merkezde. Küçük desteklerini sen seç.")
+  Text("Antrenman ve günlük ritmin",style=MaterialTheme.typography.titleLarge)
+  Eyebrow("ANTRENMAN PLANIN")
   MenuRow("90 günlük antrenman planı","${s.trainingDays} gün / hafta · ${s.dailyMinutes} dk tercihi",ArcIcons.Run,onProgram)
+  Eyebrow("GÜNLÜK DESTEKLERİN")
   if(!life.welcomed){
    InfoCard("Başlangıç için en fazla iki rutin seç. İstersen yalnızca antrenmanla devam et.",ArcIcons.Spark)
    BigButton("Rutinlerimi seç",{catalog=true},icon=ArcIcons.Spark)
@@ -85,6 +95,7 @@ fun slotLabel(slot:String)=when(slot){"morning"->"Sabah";"day"->"Gün içinde";e
   }
   MenuRow("Uyku düzenim","${s.bed} → ${s.wake}",ArcIcons.Moon,onSleep)
   if(life.entries.isNotEmpty()){
+   WeeklyActionCard(store,onRoutine)
    Surface(color=Mint,shape=RoundedCornerShape(18.dp)){
     Column(Modifier.fillMaxWidth().padding(16.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
      Eyebrow("SON 7 GÜN")
@@ -146,6 +157,7 @@ fun slotLabel(slot:String)=when(slot){"morning"->"Sabah";"day"->"Gün içinde";e
   if(!routineDue(plan,date))QuietText("Bugün planlı değil. Günlerini aşağıdan düzenleyebilirsin.")
   template.steps.forEachIndexed{index,step->
    val status=routineStatus(life,id,step.id,date)
+   var detail by rememberSaveable(id,step.id){mutableStateOf(false)}
    Surface(color=if(status=="done")Mint else Track,shape=RoundedCornerShape(18.dp),modifier=Modifier.fillMaxWidth()){
     Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
      Row(verticalAlignment=Alignment.CenterVertically){
@@ -153,7 +165,8 @@ fun slotLabel(slot:String)=when(slot){"morning"->"Sabah";"day"->"Gün içinde";e
       Text(step.title,Modifier.weight(1f).padding(horizontal=10.dp),fontWeight=FontWeight.Bold,fontSize=17.sp)
       IconButton(enabled=routineDue(plan,date),onClick={previousEntries=null;store.update{it.copy(life=recordRoutine(it.life,id,step.id,if(status=="done")null else "done",date))}}){Icon(if(status=="done")ArcIcons.Checked else ArcIcons.Circle,if(status=="done")"${step.title}: kaydı geri al" else "${step.title}: yaptım",tint=Coral)}
      }
-     QuietText(step.detail)
+     TextButton(onClick={detail=!detail}){Text(if(detail)"Açıklamayı gizle" else "Nasıl yapabilirim?")}
+     if(detail)QuietText(step.detail)
      Row(verticalAlignment=Alignment.CenterVertically){
       Text(when(status){"done"->"Yaptım olarak kaydedildi";"skip"->"Bugün atlandı";else->""},Modifier.weight(1f),fontSize=12.sp,color=ArcMuted)
       TextButton(enabled=routineDue(plan,date),onClick={previousEntries=null;store.update{it.copy(life=recordRoutine(it.life,id,step.id,if(status=="skip")null else "skip",date))}}){Text(if(status=="skip")"Geri al" else "Bugün atla")}

@@ -23,7 +23,7 @@ check(onboarding.includes('Hikâyeme başla')&&onboarding.includes('İlk bölüm
 check(onboarding.includes('FlowRow')&&source('WorkoutUI').includes('FlowRow'),'Metadata supports line wrapping');
 check(source('TrainingScreens').includes('val pose=motionFrame'),'Production geometry remains the motion source');
 check(!theme.includes('101D2D')&&!theme.includes('155FBA'),'Previous blue theme removed');
-check(fs.readFileSync(path.join(root,'app/build.gradle.kts'),'utf8').includes('versionName = "0.10.0"'),'0.10.0 version');
+check(fs.readFileSync(path.join(root,'app/build.gradle.kts'),'utf8').includes('versionName = "0.11.0"'),'0.11.0 version');
 const preview=process.argv[2];
 if(preview){
  const html=fs.readFileSync(path.join(preview,'motion-preview.html'),'utf8');

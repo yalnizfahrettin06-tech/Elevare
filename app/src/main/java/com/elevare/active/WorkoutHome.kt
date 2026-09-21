@@ -87,6 +87,10 @@ import java.util.Locale
    Icon(ArcIcons.Progress,null,Modifier.size(18.dp));Spacer(Modifier.width(8.dp));Text("Bir sonraki adımı incele")
   }
   if(active==null)LifeHomeSupport(store,onRoutine,onRoutines)
+  ExpandSection("Bu bölümün amacı",ArcIcons.Program){
+   Text(chapterPurpose(journeyDay(s,today)))
+   QuietText("Bu hafta ${weekCompleted(s,today)} seans kaydettin. Bölüm çizgisi takvimini gösterir; kondisyon veya sağlık puanı değildir.")
+  }
   TodayScience(s,onFact,store=store)
   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp)){
    OutlinedButton(onClick=onSleep,modifier=Modifier.weight(1f),contentPadding=PaddingValues(horizontal=10.dp,vertical=12.dp)){

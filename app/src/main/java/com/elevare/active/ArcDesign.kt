@@ -79,9 +79,9 @@ object ArcIcons {
 
 /** Decorative geometry is static. Pose alone runs its lifecycle-aware motion clock. */
 @Composable fun ArcStage(id:String,modifier:Modifier=Modifier,reduced:Boolean=false,playing:Boolean=true,
- progress:Float?=null,side:String="",speed:Float=1f){
+ progress:Float?=null,side:String="",speed:Float=1f,decorated:Boolean=true){
  Box(modifier.clip(RoundedCornerShape(22.dp)).background(Brush.verticalGradient(listOf(Track,Paper)))){
-  Canvas(Modifier.matchParentSize().clearAndSetSemantics{}){
+  if(decorated)Canvas(Modifier.matchParentSize().clearAndSetSemantics{}){
    val w=size.width;val h=size.height
    drawArc(Sky.copy(alpha=.14f),205f,235f,false,Offset(w*.22f,h*.05f),androidx.compose.ui.geometry.Size(w*.60f,h*.87f),style=Stroke(1.dp.toPx()))
    drawLine(Coral.copy(alpha=.25f),Offset(w*.12f,h*.82f),Offset(w*.89f,h*.82f),1.dp.toPx())

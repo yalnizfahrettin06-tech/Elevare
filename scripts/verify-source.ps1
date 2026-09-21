@@ -28,7 +28,7 @@ Assert-Check ($allSource -notmatch 'sports_cover|coach_poses|imageResource|drawI
 Assert-Check ($allSource -match 'val ages=13\.\.21') 'Age choices 13 through 21'
 Assert-Check ($allSource -match 'val minutes=listOf\(5,10,15,30\)') 'Time choices 5, 10, 15, 30'
 Assert-Check ($allSource -match 'if\s*\(\s*!answers\.complete\(\)\s*\)\s*return') 'Required final answer validation'
-Assert-Check ($allSource -match 'PREPARATION_DURATION_MS=30_000L') '30 second preparation'
+Assert-Check ($allSource -match 'PREPARATION_DURATION_MS=4_000L') 'Short four second plan summary'
 Assert-Check ($allSource -match 'const val TRIAL_DAYS=3') 'Three day trial constant'
 Assert-Check ($allSource -match 'ONBOARDING_QUESTION_COUNT\s*=\s*11') 'Eleven required onboarding questions'
 Assert-Check ($allSource -match 'PROGRAM_LENGTH\s*=\s*90') 'Ninety day cycle contract'

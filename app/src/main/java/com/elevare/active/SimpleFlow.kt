@@ -18,8 +18,7 @@ import java.time.temporal.ChronoUnit
  var name by rememberSaveable{mutableStateOf(s.name)}
  var pause by remember{mutableStateOf(false)}
  PageColumn{
-  TopBar(if(s.name.isBlank())"Profil" else s.name)
-  ArcSectionLead("TRAINING ARC","Senin ritmin.")
+  if(s.name.isNotBlank())Text(s.name,style=MaterialTheme.typography.titleLarge)
   QuietText("${s.sessions.count{it.completed&&it.type=="workout"}} seans · Haftada ${s.trainingDays} gün · ${s.dailyMinutes} dk")
   MenuRow("İlerlemem",icon=ArcIcons.Progress,onClick=onProgress)
   MenuRow("Takvim",icon=ArcIcons.Program,onClick=onPlan)
@@ -56,8 +55,8 @@ import java.time.temporal.ChronoUnit
    if(s.onboardingDraft!=null)TextButton(onClick={if(store.update{it.copy(onboardingDraft=null)})notify("Başlangıç taslağı silindi.")else notify(store.error)}){Text("Kaydedilen form taslağını sil")}
    TextButton(onClick=onDelete){Text("Tüm kayıtları sil",color=MaterialTheme.colorScheme.error)}
   }
-  MenuRow("Demo durumu","3 gün · Ücret ve yenileme yok",ArcIcons.Info,onTrial)
-  QuietText("Elevare 0.10.0 · Training Arc · Kendi ritmini kur")
+  MenuRow("Elevare Pro önizlemesi","Farkını deneyimle · Ödeme yok",ArcIcons.Spark,onTrial)
+  QuietText("Elevare 0.11.0 · Training Arc · Kendi ritmini kur")
  }
  if(pause)AlertDialog(onDismissRequest={pause=false},title={Text(if(s.pausedOn==null)"Plana ara ver?" else "Plana devam et?")},text={Text("Takvim tercihin değişir; geçmiş kayıtların korunur.")},confirmButton={TextButton(onClick={store.pauseTimer();store.update{if(it.pausedOn==null)it.copy(pausedOn=LocalDate.now().toString())else resumePlan(it)};pause=false}){Text("Onayla")}},dismissButton={TextButton(onClick={pause=false}){Text("Vazgeç")}})
 }

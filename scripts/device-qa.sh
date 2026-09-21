@@ -15,7 +15,7 @@ bash gradlew :app:connectedDebugAndroidTest --no-daemon --max-workers=2
 result=$?
 mkdir -p device-qa
 adb pull /sdcard/elevare-qa/. device-qa/
-for evidence in 07-home.png 11-player.png 15-restored-paused.png 17-font-200.png 18-routines.png 19-routine-detail.png 20-lifestyle-home.png running-normal.mp4 running-slow.mp4 yoga-entry-hold-exit.mp4; do
+for evidence in 07-home.png 11-player.png 15-restored-paused.png 17-font-200.png 18-routines.png 19-routine-detail.png 20-lifestyle-home.png 21-pro-confirm.png 22-pro-applied.png running-normal.mp4 running-slow.mp4 yoga-entry-hold-exit.mp4; do
   if [ ! -s "device-qa/$evidence" ]; then
     echo "Missing device QA evidence: $evidence" >&2
     result=1

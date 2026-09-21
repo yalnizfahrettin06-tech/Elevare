@@ -300,11 +300,11 @@ import kotlinx.coroutines.delay
    ArcStage("sprint",Modifier.fillMaxWidth().height(180.dp),reducedMotion)
    LinearProgressIndicator(progress={(elapsed.toFloat()/PREPARATION_DURATION_MS).coerceIn(0f,1f)},modifier=Modifier.fillMaxWidth().height(3.dp),color=Coral,trackColor=ArcLine)
    Text(if(result.isFailure)"Program hazırlanamadı" else preparationStage(elapsed),fontSize=25.sp,lineHeight=30.sp,fontWeight=FontWeight.Bold,modifier=Modifier.semantics{heading();liveRegion=LiveRegionMode.Polite})
-   QuietText(if(result.isFailure)"Yanıtların korunuyor. Yeniden deneyebilirsin." else "30 saniyelik program hazırlığı · "+((PREPARATION_DURATION_MS-elapsed).coerceAtLeast(0)/1000)+" sn")
+   QuietText(if(result.isFailure)"Yanıtların korunuyor. Yeniden deneyebilirsin." else "Yanıtlarından oluşturulan planın kısa özeti")
    val labels=listOf("Tercihler değerlendiriliyor","Antrenman günleri düzenleniyor","Hareket listesi oluşturuluyor","İlk hafta hazırlanıyor")
    Column(verticalArrangement=Arrangement.spacedBy(6.dp)){labels.forEachIndexed{index,label->
-    val done=elapsed>=(index+1)*7500L
-    val active=elapsed>=index*7500L
+    val done=elapsed>=(index+1)*1000L
+    val active=elapsed>=index*1000L
     Row(Modifier.fillMaxWidth().background(if(active)Mint else Paper,RoundedCornerShape(12.dp)).padding(12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
      Icon(if(done)ArcIcons.Checked else ArcIcons.Circle,null,tint=if(active)Sky else MaterialTheme.colorScheme.outline,modifier=Modifier.size(20.dp))
      Text(label,fontSize=14.sp,color=if(active)Ink else MaterialTheme.colorScheme.onSurfaceVariant)
@@ -332,15 +332,18 @@ import kotlinx.coroutines.delay
    Text(if(editing)"Hikâyen sana uysun." else "İlk bölümün hazır.",fontSize=32.sp,lineHeight=37.sp,fontWeight=FontWeight.ExtraBold,modifier=Modifier.semantics{heading()})
    QuietText("Haftada ${answers.days} gün · ${answers.minutes} dakika tercihinle")
    QuietText(programReason(answers))
+   planReasons(answers).forEach{reason->Text("• $reason",fontSize=14.sp,color=Sky)}
+   QuietText("Bu önizlemede uzman incelemesi bekleyen koşu, güç ve yoga yerine hazırlık alternatifleri kullanılır. Yanıtların uzman onayı yerine geçmez.")
    if(week!=null){
     WeekStrip(week,0)
-    week.filter{it.training}.forEach{day->
+    week.filter{it.training}.groupBy{it.workout.id}.values.forEach{days->
+     val day=days.first()
      Surface(color=MaterialTheme.colorScheme.surface,shape=RoundedCornerShape(16.dp)){
       Row(Modifier.fillMaxWidth().padding(14.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)){
        Pose(day.workout.heroMove(),Modifier.size(50.dp),Ink,true)
        Column(Modifier.weight(1f)){
         Text(day.workout.title,fontWeight=FontWeight.Bold,fontSize=16.sp)
-        QuietText("${day.index+1}. gün · ${minutesText(day.workout.seconds)}")
+        QuietText("Gün ${days.joinToString(", "){(it.index+1).toString()}} · ${minutesText(day.workout.seconds)}")
        }
       }
      }

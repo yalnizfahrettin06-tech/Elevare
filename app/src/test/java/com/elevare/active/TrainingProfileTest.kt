@@ -65,16 +65,16 @@ class TrainingProfileTest {
   val unfinished=OnboardingDraft(valid.copy(equipment=emptySet()),13,30000).restored()
   assertEquals(6,unfinished.step)
   assertEquals(0L,unfinished.preparingElapsedMs)
-  assertEquals(12,OnboardingDraft(valid,13,12000).restored().step)
-  assertEquals(12000L,OnboardingDraft(valid,12,12000).restored().preparingElapsedMs)
-  assertEquals(30000L,OnboardingDraft(valid,12,999999).restored().preparingElapsedMs)
+  assertEquals(12,OnboardingDraft(valid,13,1200).restored().step)
+  assertEquals(1200L,OnboardingDraft(valid,12,1200).restored().preparingElapsedMs)
+  assertEquals(4000L,OnboardingDraft(valid,12,999999).restored().preparingElapsedMs)
   assertEquals(0,OnboardingDraft(valid,-4,-10).restored().step)
   assertEquals(0L,OnboardingDraft(valid,12,12000,7).restored().preparingElapsedMs)
  }
  @Test fun preparationCountsForegroundTimeOnly(){
-  assertEquals(5000L,advancePreparation(5000,45000,false))
-  assertEquals(7500L,advancePreparation(7400,100,true))
-  assertEquals(30000L,advancePreparation(29900,1000,true))
+  assertEquals(500L,advancePreparation(500,45000,false))
+  assertEquals(750L,advancePreparation(650,100,true))
+  assertEquals(4000L,advancePreparation(3900,1000,true))
   assertEquals(1200L,advancePreparation(1200,-500,true))
  }
  @Test fun completingSetupStartsOneDemoOnly(){
@@ -120,10 +120,10 @@ class TrainingProfileTest {
 
  @Test fun ageAppropriateSleep(){assertTrue(sleepGuide(17).contains("8–10"));assertTrue(sleepGuide(18).contains("7–9"))}
  @Test fun preparationIs30Seconds(){
-  assertEquals(30000L,PREPARATION_DURATION_MS)
-  assertNotEquals(preparationStage(14999),preparationStage(15000))
-  assertNotEquals(preparationStage(29999),preparationStage(30000))
-  assertNotEquals(preparationStage(7499),preparationStage(7500))
+  assertEquals(4000L,PREPARATION_DURATION_MS)
+  assertNotEquals(preparationStage(1999),preparationStage(2000))
+  assertNotEquals(preparationStage(3999),preparationStage(4000))
+  assertNotEquals(preparationStage(999),preparationStage(1000))
  }
  @Test fun allMovesHaveBoundedLineGeometry(){
   val first=motionFrame("sprint",0f)

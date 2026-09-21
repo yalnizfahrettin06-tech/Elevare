@@ -92,18 +92,27 @@ import java.time.LocalDate
 @Composable fun MoveDetail(m:Move,reduced:Boolean,onBack:()->Unit){
     var frozen by rememberSaveable{mutableStateOf(false)}
     var slow by rememberSaveable{mutableStateOf(false)}
+    var lesson by rememberSaveable(m.id){mutableIntStateOf(0)}
     PageColumn{
         TopBar("HAREKET REHBERİ",onBack)
         Tag(m.category.uppercase())
         Text(m.title.uppercase(java.util.Locale.forLanguageTag("tr")),style=MaterialTheme.typography.headlineLarge)
         Column(horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(8.dp)){
-            ArcStage(m.id,Modifier.fillMaxWidth().height(245.dp),reduced,playing=!frozen,speed=if(slow)2f else 1f)
+            ArcStage(m.id,Modifier.fillMaxWidth().height(210.dp),reduced,playing=!frozen,speed=if(slow)2f else 1f,decorated=false)
             Text("Hareket rehberi · şematik gösterim",color=ArcMuted,fontSize=12.sp)
         }
         Row(horizontalArrangement=Arrangement.spacedBy(10.dp)){FilterChip(selected=frozen,onClick={frozen=!frozen},label={Text(if(frozen)"Oynat" else "Duraklat")});FilterChip(selected=slow,onClick={slow=!slow},label={Text("Yavaş göster")})}
         QuietText(motionCue(m.id))
         Text(m.hint,fontWeight=FontWeight.Bold,fontSize=19.sp)
-        m.steps.forEachIndexed{i,step->Row(horizontalArrangement=Arrangement.spacedBy(16.dp)){Box(Modifier.size(34.dp).background(Lime,CircleShape),contentAlignment=Alignment.Center){Text((i+1).toString(),fontWeight=FontWeight.Bold,color=Ink)};Text(step,Modifier.weight(1f),style=MaterialTheme.typography.bodyLarge)}}
+        if(m.steps.isNotEmpty()){
+         Text("Teknik adım ${lesson+1} / ${m.steps.size}",color=Coral,fontWeight=FontWeight.Bold)
+         Text(m.steps[lesson.coerceIn(m.steps.indices)],style=MaterialTheme.typography.bodyLarge)
+         Row(horizontalArrangement=Arrangement.spacedBy(12.dp)){
+          OutlinedButton(onClick={lesson--},enabled=lesson>0){Text("Önceki adım")}
+          OutlinedButton(onClick={lesson++},enabled=lesson<m.steps.lastIndex){Text("Sonraki adım")}
+         }
+         QuietText("Metin adımları tekniği açıklar; animasyon hareketin genel döngüsünü gösterir.")
+        }
         InfoCard("Çizgi figürü basitleştirilmiş bir gösterimdir. Teknik adımları izle; gerektiğinde bir antrenörden destek al.",ArcIcons.Info)
     }
 }
@@ -179,8 +188,9 @@ import java.time.LocalDate
             else advanceSessionRuntime(state.copy(active=active.copy(running=true,remaining=0,deadline=0,elapsedRealtimeDeadline=0)))
         }
     }
-    PageColumn{
-        TopBar(if(allDone)"Antrenman tamamlandı" else sessionPhaseLabel(w,a.step),::requestClose,action={
+    Column(Modifier.fillMaxSize()){
+    Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal=20.dp,vertical=12.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
+        TopBar(if(allDone)"Seans özeti" else sessionPhaseLabel(w,a.step),::requestClose,action={
             IconButton(onClick={soundSettings=true}){
                 Icon(if(store.state.voiceCoach)ArcIcons.Sound else ArcIcons.Mute,
                     if(store.state.voiceCoach)"Sesli koç ayarlarını aç" else "Sesli koçu aç")
@@ -209,10 +219,8 @@ import java.time.LocalDate
                     "Şimdilik dur. Bir sonraki yoğun seans açılmaz. Rahatsızlık sürüyorsa sağlık uzmanına danış; 18 yaş altındaysan güvendiğin bir yetişkine haber ver.",
                     ArcIcons.Shield)
                 if(saveError)InfoCard("Oturum kaydedilemedi. Bu ekranı kapatmadan tekrar dene.",ArcIcons.Info)
-                BigButton("Kaydet ve bitir",{
-                    val saved=store.update{completeSessionRuntime(it,a,if(feeling=="Ağrı / rahatsızlık")"Rahatsızlık" else feeling)}
-                    if(saved){audio.stop();onSaved()}else saveError=true
-                },icon=ArcIcons.Check,enabled=feeling.isNotBlank())
+                QuietText("Bu seansla birlikte bu hafta ${weekCompleted(store.state,LocalDate.now())+1} seans. Kaydettiğinde geçmişine eklenecek.")
+                QuietText("Sonraki adım: toparlan. Bir sonraki planlı gününü Rutinim'den görebilirsin.")
             }
         }else{
             Text(if(step.rest&&step.phase!="transition")"Yürüyüş arası" else move.title,
@@ -225,9 +233,9 @@ import java.time.LocalDate
                         BreathCircle(inhaling,if(!a.running)"Duraklatıldı" else if(inhaling)"Rahatça nefes al" else "Zorlamadan ver",
                             store.state.reducedMotion||!a.running)
                     }else{
-                        ArcStage(move.id,Modifier.fillMaxWidth().height(200.dp),
+                        ArcStage(move.id,Modifier.fillMaxWidth().height(156.dp),
                             reduced=store.state.reducedMotion,playing=a.running&&left>0&&resumeBlock==null,
-                            progress=techniqueProgress(step.phase,progress),side=step.side)
+                            progress=techniqueProgress(step.phase,progress),side=step.side,decorated=false)
                     }
                     Text(timeText(left),fontSize=52.sp,fontWeight=FontWeight.Bold,color=Ink,
                         letterSpacing=(-1).sp,modifier=Modifier.clearAndSetSemantics{contentDescription="$left saniye kaldı"})
@@ -246,7 +254,7 @@ import java.time.LocalDate
             }
             if(resumeBlock!=null||resumeNotice!=null)InfoCard(
                 (resumeBlock?:resumeNotice.orEmpty())+" Oturumun duraklatıldı; kaydın korunuyor.",ArcIcons.Shield)
-            else Text(sessionCoachInstruction(step,move),fontSize=16.sp,lineHeight=23.sp)
+            else ExpandSection("Teknik ipucu",ArcIcons.Info){Text(sessionCoachInstruction(step,move),fontSize=14.sp,lineHeight=21.sp)}
             if(store.state.voiceCoach&&!audio.initializing&&audio.status.isNotEmpty()&&!audioNoticeHidden){
                 Row(verticalAlignment=Alignment.CenterVertically){
                     Text("Ses kullanılamıyor. Yazılı rehberle devam edebilirsin.",Modifier.weight(1f),
@@ -254,24 +262,28 @@ import java.time.LocalDate
                     IconButton(onClick={audioNoticeHidden=true}){Icon(ArcIcons.Close,"Ses bilgisini kapat",Modifier.size(18.dp))}
                 }
             }
+        }
+    }
+    Surface(color=Paper,shadowElevation=8.dp){Column(Modifier.fillMaxWidth().padding(horizontal=20.dp,vertical=8.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
+        if(allDone)BigButton("Kaydet ve bitir",{
+            val saved=store.update{completeSessionRuntime(it,a,if(feeling=="Ağrı / rahatsızlık")"Rahatsızlık" else feeling)}
+            if(saved){audio.stop();onSaved()}else saveError=true
+        },icon=ArcIcons.Check,enabled=feeling.isNotBlank())
+        else{
+            w.steps.getOrNull(a.step+1)?.let{next->Text("Sırada: ${Content.move(next.moveId).title} · ${minutesText(next.seconds)}",fontSize=12.sp,color=Sky)}
             if(left==0)BigButton("Sonraki bölüme geç",::advance,icon=ArcIcons.Next,enabled=resumeBlock==null)
             else BigButton(if(a.running)"Duraklat" else if(initialReady)"Hazırım, başla" else "Devam et",::toggle,
                 enabled=a.running||(store.state.pausedOn==null&&resumeBlock==null),icon=if(a.running)ArcIcons.Pause else ArcIcons.Play)
-            val next=w.steps.getOrNull(a.step+1)
-            if(next!=null)Surface(shape=RoundedCornerShape(14.dp),color=MaterialTheme.colorScheme.surface){
-                Row(Modifier.fillMaxWidth().padding(14.dp),verticalAlignment=Alignment.CenterVertically){
-                    Icon(ArcIcons.Next,null,tint=Sky,modifier=Modifier.size(20.dp))
-                    Column(Modifier.weight(1f).padding(start=10.dp)){
-                        Text("Sırada",fontSize=11.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(sessionPhaseLabel(w,a.step+1)+" · "+next.seconds+" sn",fontSize=14.sp,fontWeight=FontWeight.Bold)
-                    }
-                }
-            }
-            TextButton(onClick=::requestClose,modifier=Modifier.fillMaxWidth()){Text("Seansı bırak",color=MaterialTheme.colorScheme.onSurfaceVariant)}
+            TextButton(onClick=::requestClose,modifier=Modifier.fillMaxWidth()){Text("Seansı bırak")}
         }
+    }}
     }
     if(soundSettings)AlertDialog(onDismissRequest={soundSettings=false},title={Text("Ses ve geçişler")},
         text={Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)){
+            if(audio.status.isNotBlank()){
+                QuietText(audio.status)
+                TextButton(onClick={runCatching{activity?.startActivity(android.content.Intent("com.android.settings.TTS_SETTINGS"))}}){Text("Android ses ayarlarını aç")}
+            }
             SettingToggle("Türkçe anlatım","Cihazındaki çevrimdışı ses",store.state.voiceCoach){v->store.update{it.copy(voiceCoach=v)}}
             SettingToggle("Otomatik geçiş","Bölüm bitince sıradakine geç",store.state.autoAdvance){v->store.update{it.copy(autoAdvance=v)}}
             SettingToggle("Dokunma titreşimi","Anlatım ve süre sesinden bağımsız",store.state.haptic){v->store.update{it.copy(haptic=v)}}
@@ -281,7 +293,6 @@ import java.time.LocalDate
             TextButton(onClick={audio.speak(sessionCoachInstruction(step,move))},
                 enabled=a.running&&store.state.voiceCoach&&audio.ready){Text("Yönergeyi tekrar dinle")}
             if(audio.status.isNotEmpty()){
-                QuietText(audio.status)
                 TextButton(onClick={audio.retryVoice();audioNoticeHidden=false}){Text("Türkçe sesi yeniden dene")}
             }
         }},confirmButton={TextButton(onClick={soundSettings=false}){Text("Tamam")}})

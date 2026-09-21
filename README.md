@@ -1,4 +1,6 @@
-# Elevare 0.10.0 · Training Arc / Yaşam ritmi
+# Elevare 0.11.0 · Training Arc / Yaşam ritmi
+
+[0.11 UX değişiklikleri ve açık sınırlar](docs/UX-0.11-DELIVERY.md): sabit seans kontrolleri, kompakt ana ekran, 4 saniyelik plan özeti, doğrudan rutin kaydı ve onaylı plan uyarlama önizlemesi. Gerçek ödeme ve uzman onayı eklenmedi.
 
 [0.10 kapsam ve kabul notları](docs/LIFESTYLE-0.10-DELIVERY.md): Bugün / Rutinim / Rehber, altı isteğe bağlı destek rutini, geri alınabilir günlük kayıtlar, haftalık değerlendirme ve ortak bildirim bütçesi. Antrenman ana eylem olarak korunur. Vitamin, doz, sağlık puanı, bulut ve ödeme eklenmez.
 
@@ -7,7 +9,7 @@ Türkçe, native Android workout uygulaması. Ana plan v1.0 temel alınarak haz�
 [Training Arc tasarım ve teslim notları](docs/TRAINING-ARC-0.9-DELIVERY.md). Bu sürüm görsel katmanı yeniler; yeni antrenman protokolü veya sağlık iddiası eklemez.
 
 - 13–21 yaş; zorunlu 11 soru; 5/10/15/30 dakika ve haftada 2/3/4 gün. Boy/hedef boy veya görüntüden hormon tahmini yok.
-- Kaydedilen form taslağı, 30 saniyelik ön planda hazırlık, tek sonuç ekranında tek 3 günlük demo. Profil düzenlemek süreyi veya demoyu yeniden başlatmaz.
+- Kaydedilen form taslağı, 4 saniyelik ön planda plan özeti geçişi, tek sonuç ekranında tek 3 günlük demo. Profil düzenlemek süreyi veya demoyu yeniden başlatmaz.
 - 90 gün / 5 faz, hafif haftalar, ekipmana ve ortama uyarlama, seviye onayı, ara sonrası dönüş ve döngü arşivi.
 - Ana ekran: tek ana eylem, bir bilgi kartı, uyku ve program kısayolu. Tamamlanmış, yarım kalmış, dinlenme, duraklatılmış ve dönem sonu durumları ayrı.
 - P/R/G/Y/K şablonları, kesin süre hesapları, ısınma ve soğuma. 5 dakika, kesintisiz sprint anlamına gelmez.

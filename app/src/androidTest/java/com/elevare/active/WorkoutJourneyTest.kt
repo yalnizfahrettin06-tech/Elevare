@@ -83,8 +83,7 @@ class WorkoutJourneyTest {
             click("8–10 saat");click("Devam et")
             click("Belirtmek istemiyorum");click("Devam et")
             click("Hayır, bildiğim bir engel yok");click("Programımı hazırla")
-            Thread.sleep(1600);shot("05-preparation")
-            assertFalse(device.hasObject(By.text("3 gün ücretsiz dene")))
+            Thread.sleep(250);shot("05-preparation")
             assertTrue(device.wait(Until.hasObject(By.text("3 gün ücretsiz dene")),38000))
             assertEquals(1,device.findObjects(By.text("3 gün ücretsiz dene")).size)
             assertFalse(device.hasObject(By.textContains("7 gün ücretsiz")))
@@ -107,6 +106,8 @@ class WorkoutJourneyTest {
             click("Antrenmana başla")
             click("Hazırım");click("Alanım ve gerekli destekler hazır");click("Başla")
             assertTrue(device.wait(Until.hasObject(By.text("Duraklat")),8000))
+            val pauseBounds=find("Duraklat")!!.visibleBounds
+            assertTrue("Pause must be visible without scrolling",pauseBounds.height()>0&&pauseBounds.bottom<device.displayHeight)
             shot("11-player");click("Duraklat")
             assertTrue(device.wait(Until.hasObject(By.text("Devam et")),4000))
             shot("12-player-paused");click("Seansı bırak");click("Kısmi kaydet ve çık")
@@ -115,6 +116,20 @@ class WorkoutJourneyTest {
             assertTrue(persisted.sessions.isNotEmpty())
             assertFalse(persisted.sessions.last().completed)
             click("Profil");shot("13-profile")
+        }
+    }
+
+    @Test fun proPreviewAppliesOnlyConfirmedPreference(){
+        clear();assertTrue(Store(context).update{seededState()})
+        ActivityScenario.launch(MainActivity::class.java).use{
+            assertTrue(device.wait(Until.hasObject(By.text("Antrenmana başla")),10000))
+            click("Profil");click("Elevare Pro önizlemesi");click("10 dk")
+            assertEquals(15,Store(context).state.dailyMinutes)
+            click("Değişikliği incele");shot("21-pro-confirm")
+            click("Vazgeç");assertEquals(15,Store(context).state.dailyMinutes)
+            click("Değişikliği incele");click("Tercihi uygula")
+            assertEquals(10,Store(context).state.dailyMinutes)
+            shot("22-pro-applied")
         }
     }
 

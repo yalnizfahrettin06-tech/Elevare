@@ -21,7 +21,7 @@ const val TRAINING_ONBOARDING_VERSION=8
 const val ONBOARDING_QUESTION_COUNT=11
 const val PREPARATION_STEP=12
 const val PROGRAM_READY_STEP=13
-const val PREPARATION_DURATION_MS=30_000L
+const val PREPARATION_DURATION_MS=4_000L
 
 data class OnboardingDraft(
  val answers:TrainingAnswers=TrainingAnswers(),
@@ -115,9 +115,9 @@ fun advancePreparation(elapsed:Long,foregroundDeltaMs:Long,resumed:Boolean):Long
 }
 
 fun preparationStage(elapsed:Long)=when {
- elapsed<7_500L->"Tercihlerin değerlendiriliyor"
- elapsed<15_000L->"Antrenman günlerin düzenleniyor"
- elapsed<22_500L->"Hareket listen oluşturuluyor"
+ elapsed<1_000L->"Tercihlerin değerlendiriliyor"
+ elapsed<2_000L->"Antrenman günlerin düzenleniyor"
+ elapsed<3_000L->"Hareket listen oluşturuluyor"
  elapsed<PREPARATION_DURATION_MS->"İlk haftan hazırlanıyor"
  else->"Programın hazır"
 }

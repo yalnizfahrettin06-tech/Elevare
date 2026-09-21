@@ -132,7 +132,7 @@ private val destinations=listOf(Destination("Bugün",ArcIcons.Home),Destination(
             else if(page=="profile") Column{TopBar("Ayarlar",{page=""});Box(Modifier.weight(1f)){CompactProfileScreen(store,onSources={go("sources")},onSleep={go("sleep")},onExport={export.launch("elevare-kayitlarim.json")},onDelete={showDelete=true},onPlan={go("plan")},onProgress={go("progress")},onTrial={go("trial")},notify=::message)}}
             else if(page=="plan") ProgramBrowser(s,onMove={go("move:"+it)},onWorkout={go("workout:"+it)},onBack={page=""})
             else if(page=="progress") Column{TopBar("İlerleme",{page=""});Box(Modifier.weight(1f)){ProgressScreen(s,onSleep={go("sleep")})}}
-            else if(page=="trial") DemoStatusScreen(store,onBack={page=""})
+            else if(page=="trial") ProExperienceScreen(store,onBack={page=""},onRoutine={go("routine:"+it)})
             else if(page.startsWith("fact:")) FactDetail(page.substringAfter(":"),s.age,onBack={page=""},store=store)
             else if(page.startsWith("article:")) EvidenceDetail(Research.article(page.substringAfter(":")),onBack={page=""})
             else if(page=="sources") SourcesScreen(onBack={page=""},onLink={url->try{context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(url)))}catch(_:Exception){message("Bağlantıyı açacak bir tarayıcı bulunamadı.")}})
@@ -160,7 +160,7 @@ private val destinations=listOf(Destination("Bugün",ArcIcons.Home),Destination(
 @Composable fun TopBar(title:String,onBack:(()->Unit)?=null,action:(@Composable ()->Unit)?=null) {
     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
         if(onBack!=null)IconButton(onClick=onBack){Icon(ArcIcons.Back,"Geri")}
-        if(title=="elevare")ArcBrand(Modifier.weight(1f))
+        if(title=="elevare")ArcBrand(Modifier.weight(1f),compact=true)
         else Text(title,fontSize=if(onBack==null)24.sp else 19.sp,fontWeight=FontWeight.Bold,letterSpacing=(-.6).sp,modifier=Modifier.weight(1f).semantics{heading()})
         action?.invoke()
     }
