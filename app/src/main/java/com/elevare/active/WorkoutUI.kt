@@ -34,11 +34,11 @@ import java.util.Locale
 @OptIn(ExperimentalLayoutApi::class)
 @Composable fun WorkoutHero(w:Workout,reduced:Boolean=false,label:String="BUGÜNÜN ANTRENMANI",button:String="Antrenmana başla",onStart:()->Unit,onGuide:()->Unit){
  Surface(shape=RoundedCornerShape(topStart=26.dp,topEnd=26.dp,bottomEnd=26.dp,bottomStart=8.dp),color=Track,border=BorderStroke(1.dp,ArcLine)){
-  Column(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
+  Column(Modifier.padding(14.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
    Row(verticalAlignment=Alignment.CenterVertically){Text(label,Modifier.weight(1f),fontSize=10.sp,letterSpacing=1.3.sp,color=Sky,fontWeight=FontWeight.Bold);Icon(ArcIcons.Mark,null,tint=Coral,modifier=Modifier.size(22.dp))}
    Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
     Text(w.title,Modifier.weight(1f),fontSize=24.sp,lineHeight=29.sp,fontWeight=FontWeight.ExtraBold,letterSpacing=(-.6).sp)
-    ArcStage(w.heroMove(),Modifier.size(84.dp),reduced,decorated=false)
+    ArcStage(w.heroMove(),Modifier.size(60.dp),reduced,decorated=false)
    }
    FlowRow(horizontalArrangement=Arrangement.spacedBy(18.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
     StatPill(ArcIcons.Clock,minutesText(w.seconds))

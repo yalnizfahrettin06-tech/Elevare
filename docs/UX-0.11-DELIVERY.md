@@ -11,6 +11,7 @@
 - Hareket rehberi: sade zemin, adım adım metin gezinmesi ve mevcut yavaş/duraklat kontrolleri. Metin adımı animasyonun belirli karesiymiş gibi sunulmaz.
 - Ses: çevrimdışı Türkçe ses yoksa ayrıntılı durum ve Android ses ayarlarına erişim. Cihaza bağlı TTS devam eder.
 - Profilde yinelenen başlıklar kaldırıldı.
+- Emülatör görüntüsü incelemesinden sonra ikinci sadeleştirme: rutinler ilk gün ayarının üstüne taşındı; ana kartın figürü ve boşlukları küçüldü. Onboarding gerekçeleri açılır bölümde, Pro süreleri iki sütunda. Tamamlama ekranındaki dekoratif alan azaltıldı.
 
 ## Bitmiş sayılmayan, dış bağımlılığı olan maddeler
 

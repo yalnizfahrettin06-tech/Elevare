@@ -200,12 +200,11 @@ import java.time.LocalDate
             modifier=Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
             color=if(step.rest)Sky else Coral,trackColor=MaterialTheme.colorScheme.surfaceVariant)
         if(allDone){
-            Column(Modifier.fillMaxWidth().padding(vertical=18.dp),horizontalAlignment=Alignment.CenterHorizontally,
-                verticalArrangement=Arrangement.spacedBy(16.dp)){
-                Box(Modifier.size(88.dp).background(Mint,RoundedCornerShape(topStart=24.dp,topEnd=24.dp,bottomEnd=24.dp,bottomStart=6.dp)),contentAlignment=Alignment.Center){
-                    Icon(ArcIcons.Check,null,Modifier.size(42.dp),tint=Coral)
+            Column(Modifier.fillMaxWidth().padding(vertical=8.dp),horizontalAlignment=Alignment.CenterHorizontally,
+                verticalArrangement=Arrangement.spacedBy(8.dp)){
+                Box(Modifier.size(44.dp).background(Mint,RoundedCornerShape(12.dp)),contentAlignment=Alignment.Center){
+                    Icon(ArcIcons.Check,null,Modifier.size(26.dp),tint=Coral)
                 }
-                Eyebrow("BİR SEANS. YENİ BİR İZ.")
                 Text("Antrenman tamamlandı",fontSize=27.sp,lineHeight=32.sp,fontWeight=FontWeight.ExtraBold,textAlign=TextAlign.Center)
                 Text(w.title,color=MaterialTheme.colorScheme.onSurfaceVariant,textAlign=TextAlign.Center)
                 Text(minutesText(w.seconds),color=Coral,fontSize=32.sp,fontWeight=FontWeight.Bold)

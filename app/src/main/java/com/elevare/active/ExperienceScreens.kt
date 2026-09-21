@@ -32,17 +32,21 @@ import java.time.LocalDate
  val preview=remember(s,minutes){runCatching{todayProgram(applyTimePreference(s,minutes),LocalDate.now())}.getOrNull()}
  PageColumn{
   TopBar("Pro önizlemesi",onBack)
-  Text("Hayatın değişince,\nplanın da sana uysun.",style=MaterialTheme.typography.headlineLarge)
-  QuietText("Bu sürümde ödeme yok. Aşağıdaki araçlar açık; abonelik veya kilitli içerik varmış gibi gösterilmez.")
+  Text("Planını kendine uyarla.",style=MaterialTheme.typography.headlineMedium)
+  QuietText("Ücretsiz önizleme. Ödeme ve otomatik yenileme yok.")
   Surface(color=Mint,shape=RoundedCornerShape(18.dp)){
    Column(Modifier.fillMaxWidth().padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
     Eyebrow("DENE · PLANINI UYARLA")
     Text("Antrenmana ayıracağın süre değişti mi?",fontWeight=FontWeight.Bold)
-    ProfileChoices.minutes.forEach{value->Choice("$value dk",selected=minutes==value){minutes=value;saved=false}}
+    ProfileChoices.minutes.chunked(2).forEach{pair->
+     Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){
+      pair.forEach{value->FilterChip(selected=minutes==value,onClick={minutes=value;saved=false},label={Text("$value dk")},modifier=Modifier.weight(1f).heightIn(min=48.dp))}
+     }
+    }
     if(s.active!=null)QuietText("Açık seansın korunuyor. Süreyi değiştirmeden önce seansını bitir veya bırak.")
     else preview?.let{p->
      Text("Önizleme: ${p.workout.title} · ${minutesText(p.workout.seconds)}",fontWeight=FontWeight.Bold)
-     QuietText(if(p.training)"Onaylarsan bundan sonraki planın bu süre tercihine göre hazırlanır. Geçmişin ve 90 günlük başlangıcın korunur." else "Bugün dinlenme veya plan dışı gün. Yeni süre tercihi sonraki antrenmanlarına uygulanır.")
+     QuietText(if(p.training)"Yeni süre sonraki seanslarına uygulanır. Geçmişin korunur." else "Bugün dinlenme veya plan dışı gün. Tercihin sonraki antrenmanlarına uygulanır.")
     }
     BigButton(if(saved)"Tercihin kaydedildi" else "Değişikliği incele",{confirm=true},enabled=s.active==null&&minutes!=s.dailyMinutes&&preview!=null)
    }
@@ -51,8 +55,8 @@ import java.time.LocalDate
   Text("Bu hafta ${weekCompleted(s,LocalDate.now())} tamamlanan seans · Son 7 günde ${lifeWeekCount(s.life,LocalDate.now())} rutin adımı")
   QuietText("Bunlar kayıt özeti; sağlık, hormon veya performans ölçümü değil.")
   WeeklyActionCard(store,onRoutine)
-  if(routineSuggestion(s.life,LocalDate.now())==null)QuietText("Bir rutini en az üç ayrı günde atladığını kaydedersen burada saatini değiştirme veya ara verme önerisi görürsün. Şimdilik veri uydurulmaz.")
-  ExpandSection("Ücretsiz kalacak temel deneyim",ArcIcons.Shield){
+  if(routineSuggestion(s.life,LocalDate.now())==null)QuietText("Rutin kayıtların biriktikçe burada düzenleme önerileri görebilirsin.")
+  ExpandSection("Ücretsiz temel deneyim",ArcIcons.Shield){
    Text("Başlangıç programı, temel hareket açıklamaları, güvenlik yönlendirmeleri, rutinler, bildirim tercihleri, kendi kayıtların ve dışa aktarma.")
   }
   ExpandSection("Henüz satışa sunulmayanlar",ArcIcons.Info){

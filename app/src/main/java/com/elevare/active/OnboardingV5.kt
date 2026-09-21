@@ -331,9 +331,7 @@ import kotlinx.coroutines.delay
    Eyebrow("TRAINING ARC  /  90 GÜN")
    Text(if(editing)"Hikâyen sana uysun." else "İlk bölümün hazır.",fontSize=32.sp,lineHeight=37.sp,fontWeight=FontWeight.ExtraBold,modifier=Modifier.semantics{heading()})
    QuietText("Haftada ${answers.days} gün · ${answers.minutes} dakika tercihinle")
-   QuietText(programReason(answers))
-   planReasons(answers).forEach{reason->Text("• $reason",fontSize=14.sp,color=Sky)}
-   QuietText("Bu önizlemede uzman incelemesi bekleyen koşu, güç ve yoga yerine hazırlık alternatifleri kullanılır. Yanıtların uzman onayı yerine geçmez.")
+   QuietText("Bu önizlemede koşu, güç ve yoga yerine hazırlık alternatifleri açık; diğer programlar uzman incelemesini bekliyor.")
    if(week!=null){
     WeekStrip(week,0)
     week.filter{it.training}.groupBy{it.workout.id}.values.forEach{days->
@@ -349,6 +347,10 @@ import kotlinx.coroutines.delay
      }
     }
    }else QuietText("Önizleme oluşturulamadı. Yanıtlarını düzenleyip tekrar dene.")
+   ExpandSection("Seçimlerim planı nasıl etkiledi?",ArcIcons.Settings){
+    planReasons(answers).forEach{reason->Text(reason,fontSize=14.sp,color=Sky)}
+    QuietText(programReason(answers))
+   }
    if(blocked)Surface(color=MaterialTheme.colorScheme.errorContainer,shape=RoundedCornerShape(14.dp)){
     Text("Programı inceleyebilirsin. Ağrı, kısıtlama veya belirsizlik netleşmeden antrenman başlamaz.",Modifier.padding(14.dp),fontSize=14.sp,color=MaterialTheme.colorScheme.onErrorContainer)
    }
