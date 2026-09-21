@@ -113,7 +113,7 @@ private val destinations=listOf(Destination("Bugün",ArcIcons.Home),Destination(
         } },
         snackbarHost={if(notice.isNotBlank()) Snackbar(Modifier.padding(16.dp)){Text(notice)}}
     ){padding->
-        Box(Modifier.fillMaxSize().padding(padding)){screenStates.SaveableStateProvider("${s.cycleId}:$page:$tab:${if(page=="session")"session" else dateTick}"){
+        Box(Modifier.fillMaxSize().padding(padding)){screenStates.SaveableStateProvider("${s.cycleId}:$page:$tab:${if(page=="session")"session:${s.active?.id}" else dateTick}"){
             if(store.recoveryRequired) PageColumn{
                 TopBar("Kayıtlarını koruyoruz");InfoCard(store.error)
                 BigButton("Kurtarma dosyasını kaydet",{export.launch("elevare-kurtarma.json")},icon=ArcIcons.Download)
