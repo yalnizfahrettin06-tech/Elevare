@@ -15,57 +15,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
-@Composable fun PlanScreen(s:UserState,onWorkout:(String)->Unit){
- val week=weeklyProgram(s.answers(),s.gentle);val current=(journeyDay(s)-1)%7
- PageColumn{
-  TopBar("Haftalık program")
-  Text("Bu hafta,\nsenin ritminde.",style=MaterialTheme.typography.headlineLarge)
-  QuietText(programReason(s.answers(),s.gentle))
-  WeekStrip(week,current)
-  ProgramList(week,current,onWorkout)
-  QuietText("Koşu günleri arasında toparlan. İhtiyacın varsa bir gün daha dinlenebilirsin.")
- }
-}
-
-@Composable fun ProgressScreen(s:UserState,onSleep:()->Unit){
-    val today=LocalDate.now()
-    val activity=s.sessions.filter{it.type=="workout"&&it.completed}
-    PageColumn{
-        TopBar("İLERLEMEN")
-        Text("Kendi ritmin.",style=MaterialTheme.typography.headlineLarge)
-        QuietText("Gün ${journeyDay(s)} / 90 · ${programPhase(journeyDay(s)).title}")
-        Row(horizontalArrangement=Arrangement.spacedBy(12.dp)){
-            Metric("${activity.size}","tamamlanan seans",Lime,Modifier.weight(1f))
-            Metric("${activity.sumOf{it.seconds}/60}","seans dakikası",Mint,Modifier.weight(1f))
-        }
-        Surface(color=MaterialTheme.colorScheme.surface,shape=RoundedCornerShape(20.dp)){Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(18.dp)){
-            BlockTitle("SON 7 GÜN")
-            val values=(6 downTo 0).map{offset->val d=today.minusDays(offset.toLong()).toString();activity.filter{it.date==d}.sumOf{it.seconds}}
-            Row(Modifier.fillMaxWidth().height(150.dp),horizontalArrangement=Arrangement.spacedBy(10.dp),verticalAlignment=Alignment.Bottom){values.forEachIndexed{i,v->Column(Modifier.weight(1f),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(8.dp)){Text("${v/60}",fontSize=11.sp);Box(Modifier.fillMaxWidth().height(if(v==0)5.dp else (v.toFloat()/values.maxOrNull()!!.coerceAtLeast(1)*100).dp).background(if(i==6)Blue else Mint,RoundedCornerShape(7.dp)));Text(today.minusDays((6-i).toLong()).dayOfMonth.toString(),fontSize=11.sp)}}
-            }
-            Text("Tamamlanan hareket seansları · dakika",fontSize=12.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
-        }}
-        if(s.sessions.isEmpty())InfoCard("İlk seansınla başlayacak. Burada örnek veya uydurma ilerleme yok.",ArcIcons.Spark)
-        if(s.sessions.any{!it.completed})QuietText("${s.sessions.count{!it.completed}} kısmi oturum · Tamamlanan seans sayısına eklenmez.")
-        if(s.archivedCycles.isNotEmpty()){
-            BlockTitle("Önceki döngüler")
-            s.archivedCycles.asReversed().forEach{cycle->InfoCard("${cycle.start} → ${cycle.end}\n${cycle.completedSessions} / ${cycle.plannedSessions} seans · ${cycle.dailyMinutes} dk tercihi",ArcIcons.History)}
-        }
-        BlockTitle("KÜÇÜK KAZANIMLAR")
-        listOf(Triple("İlk adım","Bir hareket seansını tamamla",activity.isNotEmpty()),Triple("Çeşitlilik iyi gelir","3 farklı antrenman dene",activity.map{it.title}.distinct().size>=3),Triple("Geceyi fark et","Bir uyku kaydı ekle",s.sleeps.isNotEmpty())).forEach{(title,desc,earned)->Surface(color=MaterialTheme.colorScheme.surface,shape=RoundedCornerShape(16.dp)){Row(Modifier.fillMaxWidth().padding(16.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(14.dp)){Box(Modifier.size(46.dp).background(if(earned)Lime else Lilac,RoundedCornerShape(12.dp)),contentAlignment=Alignment.Center){Icon(if(earned)ArcIcons.Spark else ArcIcons.Lock,null,tint=Ink)};Column(Modifier.weight(1f)){Text(title,fontWeight=FontWeight.Bold);Text(if(earned)"Kazandın · $desc" else desc,fontSize=12.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)}}}}
-        BlockTitle("UYKU GÜNLÜĞÜ","Aç",onSleep)
-        Text(if(s.sleeps.isEmpty())"Henüz uyku kaydı yok." else "${s.sleeps.size} gece kaydı · Son kayıt ${s.sleeps.maxBy{it.date}.date}",color=MaterialTheme.colorScheme.onSurfaceVariant)
-        BlockTitle("SEANS GEÇMİŞİ")
-        s.sessions.asReversed().take(30).forEach{log->Surface(color=MaterialTheme.colorScheme.surface,shape=RoundedCornerShape(14.dp)){Row(Modifier.padding(16.dp),horizontalArrangement=Arrangement.spacedBy(14.dp),verticalAlignment=Alignment.CenterVertically){Icon(if(log.type=="breath")ArcIcons.Breath else ArcIcons.Strength,null,tint=Blue);Column(Modifier.weight(1f)){Text(log.title,fontWeight=FontWeight.Bold);Text("${log.date} · ${log.feeling}",fontSize=12.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)};Text(minutesText(log.seconds),fontSize=12.sp)}}}
-        Text("Elle işaretlenen rutinler seans süresine eklenmez. Sayılar bir yarış veya sağlık puanı değildir.",fontSize=12.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
 @Composable fun Metric(value:String,label:String,color:Color,modifier:Modifier){Surface(modifier=modifier,shape=RoundedCornerShape(20.dp),color=color){Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){Text(value,color=Ink,fontSize=38.sp,fontWeight=FontWeight.Black);Text(label,color=Ink,fontSize=12.sp)}}}
 
 @Composable fun SleepScreen(store:Store,onBack:()->Unit,notify:(String)->Unit){

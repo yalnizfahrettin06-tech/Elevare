@@ -57,7 +57,7 @@ import java.time.temporal.ChronoUnit
    TextButton(onClick=onDelete){Text("Tüm kayıtları sil",color=MaterialTheme.colorScheme.error)}
   }
   MenuRow("Elevare Pro önizlemesi","Farkını deneyimle · Ödeme yok",ArcIcons.Spark,onTrial)
-  QuietText("Elevare 0.12.0 · Training Arc · Kendi ritmini kur")
+  QuietText("Elevare 0.13.0 · Training Arc · Kendi ritmini kur")
  }
  if(pause)AlertDialog(onDismissRequest={pause=false},title={Text(if(s.pausedOn==null)"Plana ara ver?" else "Plana devam et?")},text={Text("Takvim tercihin değişir; geçmiş kayıtların korunur.")},confirmButton={TextButton(onClick={store.pauseTimer();store.update{if(it.pausedOn==null)it.copy(pausedOn=LocalDate.now().toString())else resumePlan(it)};pause=false}){Text("Onayla")}},dismissButton={TextButton(onClick={pause=false}){Text("Vazgeç")}})
 }

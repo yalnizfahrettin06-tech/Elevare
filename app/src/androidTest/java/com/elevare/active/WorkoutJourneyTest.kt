@@ -244,6 +244,44 @@ class WorkoutJourneyTest {
         }
     }
 
+
+    @Test fun renewalPlanAndJournalAreReachable(){
+        clear();val seeded=seededState()
+        assertTrue(Store(context).update{seeded})
+        ActivityScenario.launch(MainActivity::class.java).use{
+            click("Profil");click("Kişisel bilgiler");click("Yanıtlarımı düzenle")
+            assertNotNull(node("Plan atölyesi"));shot("24-plan-studio")
+            click("Haftalık ritim: 3 gün");click("2 gün")
+            click("Değişiklikleri incele");click("Planımı güncelle")
+            assertEquals(2,Store(context).state.trainingDays)
+            assertEquals(seeded.cycleId,Store(context).state.cycleId)
+            device.pressBack();Thread.sleep(350)
+            click("İlerlemem");click("Tüm zamanlar");shot("25-progress-journal")
+            device.pressBack();Thread.sleep(350)
+            click("Gizlilik ve yardım");click("Yedekle ve geri yükle")
+            assertNotNull(node("Dosyadan geri yükle"));shot("26-backup")
+        }
+    }
+
+    @Test fun storageMeasurementsAndRestoreRollback(){
+        clear()
+        val dir=File(context.getExternalFilesDir(null),"qa").apply{mkdirs()}
+        val lines=mutableListOf("records,encoded_bytes,encode_ms,commit_ms,restore_ms")
+        for(size in listOf(90,365,1000)){
+            val seed=seededState().copy(sessions=(0 until size).map{
+                SessionLog("qa-$it","Ölçüm",java.time.LocalDate.now().minusDays(it.toLong()).toString(),300,"Uygundu",cycleId="past")
+            })
+            val start=System.nanoTime();val raw=StateCodec.encode(seed);val encode=System.nanoTime()-start
+            val store=Store(context);val commitAt=System.nanoTime()
+            assertTrue(store.update{seed});val commit=System.nanoTime()-commitAt
+            val at=System.nanoTime();assertTrue(store.restore(raw));val restore=System.nanoTime()-at
+            assertEquals(size,store.state.sessions.size)
+            assertTrue(store.undoRestore());assertEquals(size,store.state.sessions.size)
+            lines+="$size,${raw.toByteArray().size},${encode/1_000_000.0},${commit/1_000_000.0},${restore/1_000_000.0}"
+        }
+        File(dir,"storage-measurements.csv").writeText(lines.joinToString("\n"))
+    }
+
     @Test fun largeTextKeepsRequiredAgeAnswerReachable(){
         clear()
         device.executeShellCommand("settings put system font_scale 2.0")

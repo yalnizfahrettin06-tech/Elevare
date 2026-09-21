@@ -173,7 +173,12 @@ import java.time.LocalDate
 @Composable fun VoiceCheck(store:Store){
  val context=LocalContext.current
  val audio=remember(context){CoachAudio(context){}}
- DisposableEffect(audio){onDispose{audio.close()}}
+ val lifecycle=(context as? androidx.activity.ComponentActivity)?.lifecycle
+ DisposableEffect(audio,lifecycle){
+  val observer=androidx.lifecycle.LifecycleEventObserver{_,event->if(event==androidx.lifecycle.Lifecycle.Event.ON_STOP)audio.stop()}
+  lifecycle?.addObserver(observer)
+  onDispose{lifecycle?.removeObserver(observer);audio.close()}
+ }
  TextButton(onClick={audio.configure(true,"off",true);audio.speak("Elevare. Rahat adımlar, doğal nefes. Bu bir ses denemesidir.")}){Icon(ArcIcons.Sound,null);Spacer(Modifier.width(8.dp));Text("Türkçe sesi dene")}
  if(audio.status.isNotBlank())QuietText(audio.status)
  QuietText("Ses cihazındaki Türkçe pakete bağlı. Ekranı kapattığında seans ve koç durur; eller serbest mod henüz açık değil.")

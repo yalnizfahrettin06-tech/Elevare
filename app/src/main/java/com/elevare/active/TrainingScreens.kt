@@ -36,6 +36,9 @@ import java.time.LocalDate
                 CompositionLocalProvider(LocalContentColor provides Ink){Row(horizontalArrangement=Arrangement.spacedBy(20.dp)){StatPill(ArcIcons.Clock,minutesText(w.seconds));StatPill(ArcIcons.Run,"${w.movementCount} hareket")}}
             }
         }
+        ExpandSection("Ses ve ekran",ArcIcons.Sound){
+         QuietText("Sesli yönlendirme cihazındaki çevrimdışı Türkçe sese bağlı. Profil → Sesli koç bölümünden deneyebilirsin. Ekran kapanınca seans durur.")
+        }
         QuietText(if(s.age<18)"İlk denemede güvendiğin bir yetişkinden destek al. Ağrı veya baş dönmesinde dur." else "Tekniğinden emin değilsen bir antrenörden destek al. Ağrı veya baş dönmesinde dur.")
         BigButton(if(w.id=="breath")"Nefese başla" else "Antrenmana başla",{onStart(w)},icon=ArcIcons.Play,enabled=s.pausedOn==null)
         Text(workoutDistribution(w),fontSize=14.sp,color=Sky)

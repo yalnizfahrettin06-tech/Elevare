@@ -1,6 +1,12 @@
 name: Build Elevare Android APK
 on:
   workflow_dispatch:
+    inputs:
+      api:
+        description: Android API for device checks
+        default: "29"
+        type: choice
+        options: ["26", "29", "33", "35"]
 permissions:
   contents: read
 jobs:
@@ -38,7 +44,7 @@ jobs:
       - name: Android device verification
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 29
+          api-level: ${{ inputs.api }}
           target: default
           arch: x86_64
           profile: pixel_2
@@ -49,7 +55,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Elevare-0.13.0-verification
+          name: Elevare-0.13.0-verification-api${{ inputs.api }}
           path: |
             device-qa/
             app/build/reports/
