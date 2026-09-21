@@ -53,5 +53,9 @@ class RenewalTest {
   assertEquals("sleep",earliestReminder(jobs.reversed())!!.third)
   assertEquals("earlier",earliestReminder(jobs+Triple(999L,7,"earlier"))!!.third)
  }
+ @Test fun removingRoutineAlsoRemovesOnlyItsNote(){
+  val life=LifeState(notes=mapOf("morning" to "Çanta","water" to "Mola"))
+  assertEquals(mapOf("water" to "Mola"),deleteRoutine(life,"morning").notes)
+ }
  @Test fun notesAndMuteSurviveCodec(){val life=LifeState(notes=mapOf("morning" to "Çantamı hazırla"),notificationsMuted=true);assertEquals(life,StateCodec.decode(StateCodec.encode(ready().copy(life=life))).life)}
 }

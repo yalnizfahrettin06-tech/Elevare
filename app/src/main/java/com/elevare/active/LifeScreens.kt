@@ -208,7 +208,7 @@ fun slotLabel(slot:String)=when(slot){"morning"->"Sabah";"day"->"Gün içinde";e
   }
   TextButton(onClick={deleting=true}){Text("Rutini ve kayıtlarını kaldır",color=MaterialTheme.colorScheme.error)}
  }
- if(deleting)AlertDialog(onDismissRequest={deleting=false},title={Text("Bu rutin kaldırılsın mı?")},text={Text("Yalnız bu rutinin adım kayıtları silinir. Antrenman, uyku ve diğer rutinlerin korunur. Geri alınamaz.")},confirmButton={TextButton(onClick={if(store.update{it.copy(life=deleteRoutine(it.life,id))}){deleting=false;onBack()}}){Text("Bu rutini kaldır")}},dismissButton={TextButton(onClick={deleting=false}){Text("Vazgeç")}})
+ if(deleting)AlertDialog(onDismissRequest={deleting=false},title={Text("Bu rutin kaldırılsın mı?")},text={Text("Yalnız bu rutinin adım kayıtları ve kişisel notu silinir. Antrenman, uyku ve diğer rutinlerin korunur. Geri alınamaz.")},confirmButton={TextButton(onClick={if(store.update{it.copy(life=deleteRoutine(it.life,id))}){deleting=false;onBack()}}){Text("Bu rutini kaldır")}},dismissButton={TextButton(onClick={deleting=false}){Text("Vazgeç")}})
 }
 
 @Composable fun LifeNotificationSettings(store:Store){

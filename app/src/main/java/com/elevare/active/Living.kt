@@ -54,7 +54,7 @@ fun skipRoutine(life:LifeState,id:String,date:LocalDate):LifeState {
  LifeCatalog.find(id)?.steps?.filter{routineStatus(result,id,it.id,date)==null}?.forEach{result=recordRoutine(result,id,it.id,"skip",date)}
  return result
 }
-fun deleteRoutine(life:LifeState,id:String)=life.copy(plans=life.plans.filterNot{it.id==id},entries=life.entries.filterKeys{it.split('|').getOrNull(1)!=id})
+fun deleteRoutine(life:LifeState,id:String)=life.copy(plans=life.plans.filterNot{it.id==id},entries=life.entries.filterKeys{it.split('|').getOrNull(1)!=id},notes=life.notes-id)
 fun visibleRoutines(life:LifeState,date:LocalDate,hour:Int):List<LifeRoutinePlan> {
  val slot=if(hour<12)"morning" else if(hour<18)"day" else "evening"
  return life.plans.filter{routineDue(it,date)}.sortedWith(compareBy<LifeRoutinePlan>{routineRecorded(life,it.id,date)}.thenBy{LifeCatalog.find(it.id)?.slot!=slot}.thenBy{it.time}).take(2)
