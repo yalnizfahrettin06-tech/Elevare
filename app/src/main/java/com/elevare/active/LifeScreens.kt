@@ -60,6 +60,7 @@ fun slotLabel(slot:String)=when(slot){"morning"->"Sabah";"day"->"Gün içinde";e
    Icon(routineIcon(p.id),null,tint=if(finished)ArcMuted else Coral,modifier=Modifier.size(23.dp))
    Column(Modifier.weight(1f)){
     Text(t.title,fontSize=15.sp,fontWeight=FontWeight.SemiBold)
+    if(quickLabel!=null)Text("Sıradaki: ${quickLabel.removeSuffix(": yaptım")}",fontSize=13.sp,color=Sky)
     Text(if(!p.enabled)"Kapalı" else if(finished&&done==0)"Bugün atlandı" else if(finished&&done<t.steps.size)"$done yapıldı · ${t.steps.size-done} atlandı" else if(finished)"Tamamlandı" else "${p.time} · $done / ${t.steps.size} adım",fontSize=12.sp,color=ArcMuted)
    }
    if(quickLabel!=null)IconButton(onClick=onQuick){Icon(ArcIcons.Circle,quickLabel,tint=Coral)}

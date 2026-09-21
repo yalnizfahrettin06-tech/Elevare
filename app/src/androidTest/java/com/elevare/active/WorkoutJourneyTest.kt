@@ -133,6 +133,32 @@ class WorkoutJourneyTest {
         }
     }
 
+    @Test fun homeQuickActionAndUndoPreserveOtherRecords(){
+        clear();assertTrue(Store(context).update{seededState().copy(life=addRoutine(LifeState(),"water"))})
+        ActivityScenario.launch(MainActivity::class.java).use{
+            assertTrue(device.wait(Until.hasObject(By.text("Antrenmana başla")),10000))
+            click("Su molanı ver: yaptım")
+            assertEquals(1,routineDoneCount(Store(context).state.life,"water",java.time.LocalDate.now()))
+            click("Son işaretlemeyi geri al")
+            assertEquals(0,routineDoneCount(Store(context).state.life,"water",java.time.LocalDate.now()))
+        }
+    }
+
+    @Test fun largeTextKeepsSessionControlsVisible(){
+        clear()
+        val fixture=Workout("qa_large_v11","Büyük yazı kontrolü","Yalnız test","Hazırlık",listOf(Step("walk",90,phase="warmup")))
+        assertTrue(Store(context).update{seededState(ActiveSession(fixture.id,remaining=90,running=false,snapshot=fixture))})
+        device.executeShellCommand("settings put system font_scale 2.0")
+        ActivityScenario.launch(MainActivity::class.java).use{
+            click("Antrenmana devam et");click("Hazırım, başla")
+            assertTrue(device.wait(Until.hasObject(By.text("Duraklat")),8000))
+            val bounds=find("Duraklat")!!.visibleBounds
+            assertTrue(bounds.height()>0&&bounds.bottom<device.displayHeight)
+            shot("23-player-large-text");click("Duraklat")
+            assertFalse(Store(context).state.active!!.running)
+        }
+    }
+
     @Test fun lifestyleOptInCompletionUndoAndPersistence(){
         clear()
         assertTrue(Store(context).update{seededState()})
