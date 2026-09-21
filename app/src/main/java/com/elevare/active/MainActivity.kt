@@ -127,7 +127,7 @@ private val destinations=listOf(Destination("Bugün",ArcIcons.Home),Destination(
                 BigButton("Programıma dön",{go("plan")},icon=ArcIcons.Program)
             }
             else if(page=="session"&&!trainingAllowed(s)) SourcesScreen(onBack=::back,onLink={message("Rehber sekmesinden kaynakları okuyabilirsin.")})
-            else if(page=="session") SessionScreen(store,onClose={store.pauseTimer();back()},onSaved={home();message("Antrenman tamamlandı. Kaydın hazır!")})
+            else if(page=="session") SessionScreen(store,onClose={store.pauseTimer();back()},onSaved={home();message("Seansın kaydedildi.")})
             else if(page.startsWith("workout:")) WorkoutDetail(Content.workout(page.substringAfter(":")),s,onBack=::back,onFavorite={id->store.update{it.copy(favorites=if(id in it.favorites)it.favorites-id else it.favorites+id)}},onStart={w->
                 if(!trainingAllowed(s)){message("Önce Profil bölümünden antrenman uygunluğunu gözden geçir.")}
                 else if(s.pausedOn!=null){message("Planın dinlenmede. Profilinden devam edebilirsin.")}

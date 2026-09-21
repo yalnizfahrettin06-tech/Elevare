@@ -206,7 +206,7 @@ import java.time.LocalDate
                 Box(Modifier.size(44.dp).background(Mint,RoundedCornerShape(12.dp)),contentAlignment=Alignment.Center){
                     Icon(ArcIcons.Check,null,Modifier.size(26.dp),tint=Coral)
                 }
-                Text("Antrenman tamamlandı",fontSize=27.sp,lineHeight=32.sp,fontWeight=FontWeight.ExtraBold,textAlign=TextAlign.Center)
+                Text(if(w.id=="breath")"Nefes molası tamamlandı" else "Antrenman tamamlandı",fontSize=27.sp,lineHeight=32.sp,fontWeight=FontWeight.ExtraBold,textAlign=TextAlign.Center)
                 Text(w.title,color=MaterialTheme.colorScheme.onSurfaceVariant,textAlign=TextAlign.Center)
                 Text(minutesText(w.seconds),color=Coral,fontSize=32.sp,fontWeight=FontWeight.Bold)
                 Text("Nasıl hissettirdi?",fontWeight=FontWeight.Bold)
@@ -219,7 +219,7 @@ import java.time.LocalDate
                     "Şimdilik dur. Bir sonraki yoğun seans açılmaz. Rahatsızlık sürüyorsa sağlık uzmanına danış; 18 yaş altındaysan güvendiğin bir yetişkine haber ver.",
                     ArcIcons.Shield)
                 if(saveError)InfoCard("Oturum kaydedilemedi. Bu ekranı kapatmadan tekrar dene.",ArcIcons.Info)
-                QuietText("Bu seansla birlikte bu hafta ${weekCompleted(store.state,LocalDate.now())+1} seans. Kaydettiğinde geçmişine eklenecek.")
+                QuietText(if(w.id=="breath")"Nefes molan ayrı kaydedilir; antrenman sayını değiştirmez." else "Kaydettiğinde bu haftanın antrenman sayısı: ${completionWeekCount(store.state,a,LocalDate.now())}. Seanslar başladığın tarihe yazılır.")
                 QuietText("Sonraki adım: toparlan. Bir sonraki planlı gününü Rutinim'den görebilirsin.")
             }
         }else{

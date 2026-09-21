@@ -23,6 +23,10 @@ fun applyTimePreference(s:UserState,minutes:Int):UserState {
 fun weekCompleted(s:UserState,today:LocalDate)=s.sessions.count{
  it.completed&&it.type=="workout"&&it.date>=today.with(java.time.DayOfWeek.MONDAY).toString()&&it.date<=today.toString()
 }
+fun completionWeekCount(s:UserState,a:ActiveSession,today:LocalDate):Int {
+ val counts=a.workoutId!="breath"&&a.startedDate>=today.with(java.time.DayOfWeek.MONDAY).toString()&&a.startedDate<=today.toString()&&s.sessions.none{it.id==a.id&&it.completed}
+ return weekCompleted(s,today)+if(counts)1 else 0
+}
 /** Preview the next actual training day, not a rest-day placeholder. */
 fun nextTrainingPreview(s:UserState,today:LocalDate):ProgramDay? {
  if(s.pausedOn!=null||isCycleComplete(s,today))return null

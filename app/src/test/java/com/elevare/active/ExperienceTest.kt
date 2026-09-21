@@ -34,4 +34,7 @@ class ExperienceTest {
  }
  @Test fun nonScheduledRoutineRejectsNewRecords(){val life=addRoutine(LifeState(),"morning").let{it.copy(plans=it.plans.map{p->p.copy(days=setOf(2))})};assertEquals(life,recordRoutine(life,"morning","priority","done",today))}
  @Test fun catalogReactivationDoesNotReenableNotifications(){val life=addRoutine(LifeState(),"morning").let{it.copy(plans=it.plans.map{p->p.copy(enabled=false,remind=true)})};val restored=addRoutine(life,"morning");assertTrue(restored.plans.single().enabled);assertFalse(restored.plans.single().remind)}
+ @Test fun breathingDoesNotInflateCompletionCount(){assertEquals(0,completionWeekCount(ready(),ActiveSession("breath",startedDate=today.toString()),today))}
+ @Test fun sundaySessionFinishingMondayStaysInPreviousWeek(){assertEquals(0,completionWeekCount(ready(),ActiveSession("runprep",startedDate=today.minusDays(1).toString()),today))}
+ @Test fun workoutCompletionAddsOneOnlyOnce(){val a=ActiveSession("runprep",startedDate=today.toString());assertEquals(1,completionWeekCount(ready(),a,today));val s=ready().copy(sessions=listOf(SessionLog(a.id,"Test",today.toString(),60,"Uygundu")));assertEquals(1,completionWeekCount(s,a,today))}
 }

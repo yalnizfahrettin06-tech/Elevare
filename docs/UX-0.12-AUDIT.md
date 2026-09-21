@@ -17,6 +17,7 @@
 9. **Katalogdan yeniden eklenen rutin eski bildirim tercihini açabiliyordu.** Katalog üzerinden yeniden ekleme bildirimleri kapalı başlatır; geçmişi korur. Gün/saat ekranındaki açık kullanıcı tercihleri ayrı kalır.
 10. **Ana ekran açık kaldığında sabah/gün/akşam sıralaması eskimeye devam ediyordu.** Rutin zaman bağlamı 30 saniyede güncellenir; eski güne ait geri alma doğru kayıt tarihini kullanır.
 11. **Azaltılmış harekette oynat/yavaşlat düğmeleri sonuç vermiyordu.** Sabit gösterim açıkça açıklanır; etkisiz animasyon kontrolleri gösterilmez. Teknik metin rehberi kullanılabilir.
+12. **Bitiş özeti nefes molasını antrenman sayısına eklenmiş gibi gösteriyordu.** Nefes için ayrı başlık ve açıklama vardır. Haftalık özet yalnız antrenmanı ve kaydın başlangıç tarihini sayar; pazar başlayıp pazartesi biten seans yeni haftaya eklenmiş gibi gösterilmez. Yinelenen kayıt iki kez sayılmaz.
 
 ## Doğrulama kapsamı
 
