@@ -41,7 +41,16 @@ class WorkoutJourneyTest {
             ?:device.findObject(By.desc(text))?:error("Missing: $text")
     }
     private fun click(text:String){
-        node(text).click();device.waitForIdle(1200);Thread.sleep(250)
+        // Compose can replace the semantics node between lookup and click.
+        // Retry only this stale-reference failure, never an assertion or missing control.
+        repeat(3){attempt->
+            try{
+                node(text).click();device.waitForIdle(1200);Thread.sleep(250);return
+            }catch(stale:StaleObjectException){
+                if(attempt==2)throw stale
+                device.waitForIdle(1200);Thread.sleep(150)
+            }
+        }
     }
     private fun shot(name:String){
         device.waitForIdle(1500);Thread.sleep(500)
